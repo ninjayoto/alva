@@ -19,8 +19,14 @@ export class PngExporter extends Exporter {
 		}
 	}
 
+<<<<<<< HEAD
 	private async createPngExport(webview: WebviewTag): Promise<Buffer> {
 		return new Promise<Buffer>(resolve => {
+=======
+	// tslint:disable-next-line promise-function-async
+	private createPngExport(webview: WebviewTag): Promise<Buffer> {
+		return new Promise(resolve => {
+>>>>>>> refactor: unify exporter interface
 			webview.executeJavaScript(CODE, false, webviewSize => {
 				// set the height of the webview tag to the preview body height
 				// This is needed because capturePage can not capture anything that renders

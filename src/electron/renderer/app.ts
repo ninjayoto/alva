@@ -1,8 +1,8 @@
 import { App } from '../../component/container/app';
-import { ipcRenderer, webFrame, WebviewTag } from 'electron';
-import { JsonObject } from '../../store/json';
-import * as MobX from 'mobx';
-import { Page } from '../../store/page/page';
+import { ipcRenderer, webFrame /*, WebviewTag*/ } from 'electron';
+// import { JsonObject } from '../../store/json';
+// import * as MobX from 'mobx';
+// import { Page } from '../../store/page/page';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Store } from '../../store/store';
@@ -14,7 +14,7 @@ webFrame.setLayoutZoomLevelLimits(0, 0);
 const store: Store = Store.getInstance();
 store.openFromPreferences();
 
-ipcRenderer.on('preview-ready', (readyEvent: {}, readyMessage: JsonObject) => {
+/* ipcRenderer.on('preview-ready', (readyEvent: {}, readyMessage: JsonObject) => {
 	function sendWebViewMessage(message: JsonObject, channel: string): void {
 		const webviewTag: WebviewTag = document.getElementById('preview') as WebviewTag;
 		if (webviewTag && webviewTag.send) {
@@ -52,9 +52,24 @@ ipcRenderer.on('preview-ready', (readyEvent: {}, readyMessage: JsonObject) => {
 			sendWebViewMessage(message, 'selectedElement-change');
 		});
 	}, 3000);
-});
+}); */
 
-ReactDom.render(React.createElement(App), document.getElementById('app'));
+ipcRenderer.send('message', { type: 'app-loaded' });
+
+// tslint:disable-next-line:no-any
+ipcRenderer.on('message', (e: Electron.Event, message: any) => {
+	if (!message) {
+		return;
+	}
+	switch (message.type) {
+		case 'start-app': {
+			ReactDom.render(
+				React.createElement(App, { port: message.payload }),
+				document.getElementById('app')
+			);
+		}
+	}
+});
 
 // Disable drag and drop from outside the application
 document.addEventListener(

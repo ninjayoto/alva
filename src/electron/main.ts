@@ -1,13 +1,15 @@
 import { checkForUpdates } from './auto-updater';
 import { app, BrowserWindow, ipcMain, screen } from 'electron';
+import * as getPort from 'get-port';
 import * as PathUtils from 'path';
+import { createServer } from './server';
 import * as url from 'url';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win: BrowserWindow | undefined;
 
-function createWindow(): void {
+async function createWindow(): Promise<void> {
 	const { width = 1280, height = 800 } = screen.getPrimaryDisplay().workAreaSize;
 
 	// Create the browser window.
@@ -28,6 +30,29 @@ function createWindow(): void {
 			slashes: true
 		})
 	);
+
+	// tslint:disable-next-line:await-promise
+	const port = await getPort();
+	const server = await createServer({ port });
+
+	// tslint:disable-next-line:no-any
+	ipcMain.on('message', (e: Electron.Event, payload: any) => {
+		if (!payload) {
+			return;
+		}
+
+		server.emit('message', payload);
+
+		switch (payload.type) {
+			case 'app-loaded': {
+				win &&
+					win.webContents.send('message', {
+						type: 'start-app',
+						payload: port
+					});
+			}
+		}
+	});
 
 	// Open the DevTools.
 	// win.webContents.openDevTools();
@@ -69,8 +94,8 @@ log.info('App starting...');
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {
-	createWindow();
+app.on('ready', async () => {
+	await createWindow();
 });
 
 // Quit when all windows are closed.
@@ -82,11 +107,11 @@ app.on('window-all-closed', () => {
 	}
 });
 
-app.on('activate', () => {
+app.on('activate', async () => {
 	// On macOS it's common to re-create a window in the app when the
 	// dock icon is clicked and there are no other windows open.
 	if (!win) {
-		createWindow();
+		await createWindow();
 	}
 });
 

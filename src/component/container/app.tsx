@@ -30,8 +30,12 @@ globalStyles();
 
 const store = Store.getInstance();
 
+export interface AppProps {
+	port: number;
+}
+
 @observer
-export class App extends React.Component {
+export class App extends React.Component<AppProps> {
 	private static PATTERN_LIST_ID = 'patternlist';
 	private static PROPERTIES_LIST_ID = 'propertieslist';
 
@@ -39,7 +43,7 @@ export class App extends React.Component {
 	private ctrlDown: boolean = false;
 	private shiftDown: boolean = false;
 
-	public constructor(props: {}) {
+	public constructor(props: AppProps) {
 		super(props);
 		this.handleTabNaviagtionClick = this.handleTabNaviagtionClick.bind(this);
 		this.handleMainWindowClick = this.handleMainWindowClick.bind(this);
@@ -137,17 +141,11 @@ export class App extends React.Component {
 
 	public render(): JSX.Element {
 		const project = store.getCurrentProject();
-		const styleguide = store.getStyleguide();
-		const previewFrame = project && project.getPreviewFrame();
-		const previewFramePath =
-			styleguide && previewFrame && PathUtils.join(store.getPagesPath(), 'alva', previewFrame);
-
 		const DevTools = this.getDevTools();
 
 		return (
 			<Layout directionVertical handleClick={this.handleMainWindowClick}>
 				<ChromeContainer />
-
 				<MainArea>
 					{project && [
 						<SideBar key="left" directionVertical hasPaddings>
@@ -158,7 +156,10 @@ export class App extends React.Component {
 								<PatternListContainer />
 							</PatternsPane>
 						</SideBar>,
-						<PreviewPaneWrapper key="center" previewFrame={previewFramePath} />,
+						<PreviewPaneWrapper
+							key="center"
+							previewFrame={`http://localhost:${this.props.port}/preview.html`}
+						/>,
 						<SideBar key="right" directionVertical hasPaddings>
 							<PropertyPane>
 								<PropertyList />

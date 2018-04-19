@@ -49,7 +49,7 @@ const StyledPreviewPane = BaseStyledPreviewPane.extend.attrs({
 	style: (props: PreviewPaneProps) => ({
 		maxWidth: `${props.width}px` || 'none'
 	})
-}) `${(props: PreviewPaneProps) => ({})}`;
+})`${(props: PreviewPaneProps) => ({})}`;
 
 export default class PreviewPane extends React.Component<PreviewPaneProps> {
 	private previewPane: HTMLElement;
@@ -81,13 +81,14 @@ export default class PreviewPane extends React.Component<PreviewPaneProps> {
 				onMouseUp={handleMouseUp}
 			>
 				<StyledPreviewResizer onMouseDown={handleMouseDownLeft} />
-				<StyledPreviewPane
-					width={width}
-					dangerouslySetInnerHTML={{
-						__html: `<webview id="preview" style="height: 100%; border-radius: 6px 6px 0 0; overflow: hidden;" src="${previewFrame ||
-							'./preview.html'}" preload="./preview.js" partition="electron" />`
-					}}
-				/>
+				<StyledPreviewPane width={width}>
+					<StyledPreviewFrame
+						width={width}
+						id="preview"
+						sandbox="allow-scripts"
+						src={previewFrame}
+					/>
+				</StyledPreviewPane>
 				<StyledPreviewResizer onMouseDown={handleMouseDownRight} />
 			</StyledPreviewWrapper>
 		);
@@ -102,3 +103,10 @@ export default class PreviewPane extends React.Component<PreviewPaneProps> {
 		this.props.handlePreviewWidthUpdate(previewWidth);
 	}
 }
+
+const StyledPreviewFrame = styled('iframe')`
+	height: 100%;
+	border: none;
+	border-radius: 6px 6px 0 0;
+	overflow: hidden;
+`;

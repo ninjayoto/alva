@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import * as express from 'express';
 import * as Http from 'http';
 import * as Path from 'path';
+import { previewDocument } from './preview-document';
 import { Store } from '../store/store';
 import * as webpack from 'webpack';
 import * as webpackDevMiddleware from 'webpack-dev-middleware';
@@ -11,7 +12,6 @@ export interface ServerOptions {
 	port: number;
 }
 
-const STATIC_PATH = Path.resolve(__dirname, 'static');
 const PREVIEW_PATH = Path.join(__dirname, 'preview.js');
 
 export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
@@ -40,9 +40,68 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 	});
 
 	// tslint:disable-next-line:no-any
-	emitter.on('message', (message: any) => {
+	emitter.on('message', async (message: any) => {
 		if (message.type === 'project-start') {
+			app.get('/preview.html', (req, res) => {
+				res.type('html');
+				res.send(previewDocument);
+			});
+
 			startMessage = message;
+			const styleguide = store.getStyleguide();
+
+			if (styleguide) {
+				const styleguidePath = styleguide.getPath();
+
+				const components = styleguide.getPatterns().reduce((acc, pattern) => {
+					const patternPath = pattern.getImplementationPath();
+
+					if (!patternPath) {
+						return acc;
+					}
+
+					const relPath = `./${Path.posix.relative(process.cwd(), patternPath)}`;
+					acc[
+						encodeURIComponent(
+							pattern
+								.getId()
+								.split(Path.sep)
+								.join('-')
+						)
+					] = relPath;
+					return acc;
+				}, {});
+
+				const compiler = webpack({
+					mode: 'development',
+					entry: {
+						preview: PREVIEW_PATH,
+						...components
+					},
+					output: {
+						filename: '[name].js',
+						library: '[name]',
+						libraryTarget: 'global',
+						path: '/'
+					},
+					optimization: {
+						splitChunks: {
+							cacheGroups: {
+								vendor: {
+									chunks: 'initial',
+									name: 'vendor',
+									test: /node_modules/,
+									priority: 10,
+									enforce: true
+								}
+							}
+						}
+					}
+					// tslint:disable-next-line:no-any
+				} as any);
+
+				app.use('/scripts', webpackDevMiddleware(compiler));
+			}
 		}
 
 		wss.clients.forEach(client => {
@@ -51,19 +110,6 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 			}
 		});
 	});
-
-	const compiler = webpack({
-		mode: 'development',
-		entry: {
-			preview: PREVIEW_PATH
-		},
-		output: {
-			filename: '[name].js',
-			path: '/'
-		}
-	});
-
-	app.use('/', express.static(STATIC_PATH)).use(webpackDevMiddleware(compiler));
 
 	await startServer({
 		server,

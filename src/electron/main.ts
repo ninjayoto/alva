@@ -1,12 +1,8 @@
 import { checkForUpdates } from './auto-updater';
 import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import * as getPort from 'get-port';
-import { Persister } from '../store/json';
-import * as MobX from 'mobx';
-import { Page } from '../store/page/page';
 import * as PathUtils from 'path';
 import { createServer } from './server';
-import { Store } from '../store/store';
 import * as url from 'url';
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -56,67 +52,6 @@ async function createWindow(): Promise<void> {
 					});
 			}
 		}
-	});
-
-	const store = Store.getInstance();
-	store.openFromPreferences();
-
-	MobX.autorun(() => {
-		const project = store.getCurrentProject();
-		const pagesPath = store.getPagesPath();
-
-		const pages =
-			typeof project === 'undefined'
-				? []
-				: project
-						.getPages()
-						.map(pageRef => {
-							const persistedPath = pageRef.getLastPersistedPath();
-
-							if (!persistedPath) {
-								return;
-							}
-
-							const pagePath: string = PathUtils.join(pagesPath, persistedPath);
-							// tslint:disable-next-line:no-any
-							const data: any = Persister.loadYamlOrJson(pagePath);
-							return Page.fromJsonObject(data, pageRef.getId()).toJsonObject();
-						})
-						.filter(Boolean);
-
-		const page = store.getCurrentPage();
-		const selectedElement = store.getSelectedElement();
-
-		server.emit('message', {
-			type: 'project-start',
-			payload: {
-				projectId: project ? project.getId() : undefined,
-				pageId: page ? page.getId() : undefined,
-				pages,
-				selectedElementId: selectedElement ? selectedElement.getId() : undefined
-			}
-		});
-
-		server.emit('message', {
-			type: 'styleguide-change',
-			payload: pages
-		});
-	});
-
-	MobX.autorun(() => {
-		const page: Page | undefined = store.getCurrentPage();
-		server.emit('message', {
-			type: 'page-change',
-			payload: page ? page.getId() : undefined
-		});
-	});
-
-	MobX.autorun(() => {
-		const selectedElement = store.getSelectedElement();
-		server.emit('message', {
-			type: 'element-change',
-			payload: selectedElement ? selectedElement.getId() : undefined
-		});
 	});
 
 	// Open the DevTools.

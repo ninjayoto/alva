@@ -23,7 +23,7 @@ export class PageRef {
 	/**
 	 * The technical (internal) ID of the page.
 	 */
-	@MobX.observable private id: string;
+	@MobX.observable public id: string;
 
 	/**
 	 * The last path reference persisted in the projects.xml for this page. Used:

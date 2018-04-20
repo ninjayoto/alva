@@ -51,8 +51,6 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 			const styleguide = store.getStyleguide();
 
 			if (styleguide) {
-				const styleguidePath = styleguide.getPath();
-
 				const components = styleguide.getPatterns().reduce((acc, pattern) => {
 					const patternPath = pattern.getImplementationPath();
 

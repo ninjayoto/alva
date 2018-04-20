@@ -32,7 +32,7 @@ async function createWindow(): Promise<void> {
 	);
 
 	// tslint:disable-next-line:await-promise
-	const port = await getPort();
+	const port = await getPort({ port: 1879 });
 	const server = await createServer({ port });
 
 	// tslint:disable-next-line:no-any

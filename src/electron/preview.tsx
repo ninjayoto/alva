@@ -1,3 +1,5 @@
+import { HighlightArea } from '../styleguide/renderer/highlight-area';
+import { camelCase } from 'lodash';
 import * as MobX from 'mobx';
 import * as MobXReact from 'mobx-react';
 import * as Path from 'path';
@@ -11,6 +13,8 @@ function main(): void {
 	const store = MobX.observable.map({});
 	store.set('components', []);
 	store.set('tasks', []);
+
+	const highlight = new HighlightArea();
 
 	const connection = new WebSocket(`ws://${window.location.host}`);
 	const close = () => connection.close();
@@ -27,6 +31,8 @@ function main(): void {
 		const message = parse(e.data);
 		const { type, payload } = message;
 
+		console.log(message);
+
 		switch (type) {
 			case 'project-start':
 				store.set('projectId', payload.projectId);
@@ -42,13 +48,14 @@ function main(): void {
 			case 'page-change':
 				store.set('pageId', payload);
 				break;
-			case 'element-change':
+			case 'element-change': {
 				store.set('elementId', payload);
+			}
 		}
 	});
 
 	ReactDom.render(
-		<MobXReact.Provider store={store}>
+		<MobXReact.Provider store={store} highlight={highlight}>
 			<PreviewApplication />
 		</MobXReact.Provider>,
 		document.getElementById('app')
@@ -78,6 +85,7 @@ class PreviewApplication extends React.Component {
 		const pageId = props.store.get('pageId');
 		const page = pages.find(p => p.id === pageId);
 		const tasks = props.store.get('tasks');
+		const elementId = props.store.get('elementId');
 
 		if (!page || tasks.length > 0) {
 			return null;
@@ -86,44 +94,119 @@ class PreviewApplication extends React.Component {
 		const component = page.root;
 
 		return (
-			<PreviewComponent
-				children={component.children}
-				pattern={component.pattern}
-				properties={component.properties}
-				name={component.name}
-				uuid={component.uuid}
-			/>
+			<React.Fragment>
+				<PreviewComponent
+					children={component.children}
+					pattern={component.pattern}
+					properties={component.properties}
+					name={component.name}
+					uuid={component.uuid}
+					elementId={elementId}
+				/>
+				<PreviewHighlight />
+			</React.Fragment>
 		);
 	}
 }
 
-interface PreviewApplicationProps {
-	children: PreviewApplicationProps[];
+interface PreviewComponentProps {
+	children: PreviewComponentProps[];
+	elementId: string;
+	name: string;
 	pattern: string;
 	// tslint:disable-next-line:no-any
 	properties: { [key: string]: any };
-	name: string;
 	uuid: string;
 }
 
-class PreviewComponent extends React.Component<PreviewApplicationProps> {
+interface InjectedPreviewComponentProps extends PreviewComponentProps {
+	// tslint:disable-next-line:no-any
+	store: any;
+}
+
+class PreviewComponent extends React.Component<PreviewComponentProps> {
+	public ref: HTMLElement | null;
+
+	public componentDidMount(): void {
+		this.onUpdate();
+	}
+
+	public componentDidUpdate(): void {
+		this.onUpdate();
+	}
+
+	private onUpdate(): void {
+		if (this.props.elementId === this.props.uuid) {
+			console.log(this.ref);
+		}
+	}
+
 	public render(): JSX.Element | null {
 		const component = this.props.pattern ? window[safePattern(this.props.pattern)] : null;
 
 		if (!component) {
 			return (
-				<React.Fragment>
-					{this.props.children.map(child => <PreviewComponent key={child.uuid} {...child} />)}
-				</React.Fragment>
+				<div ref={ref => (this.ref = ref)}>
+					{this.props.children.map(child => (
+						<PreviewComponent elementId={this.props.elementId} key={child.uuid} {...child} />
+					))}
+				</div>
 			);
 		}
 
 		const Component = typeof component.default === 'function' ? component.default : component;
+		Component.displayName = camelCase(this.props.name);
 
 		return (
-			<Component {...this.props.properties} data-sketch-name={this.props.name}>
-				{this.props.children.map(child => <PreviewComponent key={child.uuid} {...child} />)}
+			<Component
+				ref={ref => (this.ref = ref)}
+				innerRef={ref => (this.ref = ref)}
+				{...this.props.properties}
+				data-sketch-name={this.props.name}
+			>
+				{this.props.children.map(child => (
+					<PreviewComponent elementId={this.props.elementId} key={child.uuid} {...child} />
+				))}
 			</Component>
+		);
+	}
+}
+
+interface InjectedPreviewHighlightProps {
+	highlight: HighlightArea;
+}
+
+@MobXReact.inject('highlight')
+@MobXReact.observer
+class PreviewHighlight extends React.Component {
+	public render(): JSX.Element {
+		const props = this.props as InjectedPreviewHighlightProps;
+		const { highlight } = props;
+		const p = highlight.getProps();
+
+		return (
+			<div
+				style={{
+					position: 'absolute',
+					boxSizing: 'border-box',
+					border: '1px dashed rgba(55, 55, 55, .5)',
+					background: `
+					repeating-linear-gradient(
+						135deg,
+						transparent,
+						transparent 2.5px,rgba(51, 141, 222, .5) 2.5px,
+						rgba(51,141,222, .5) 5px),
+						rgba(102,169,230, .5)`,
+					transition: 'all .25s ease-in-out',
+					bottom: p.bottom,
+					height: p.height,
+					left: p.left,
+					opacity: p.opacity,
+					right: p.right,
+					top: p.top,
+					width: p.width
+				}}
+			/>
 		);
 	}
 }

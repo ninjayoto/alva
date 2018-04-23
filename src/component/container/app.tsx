@@ -39,7 +39,6 @@ export class App extends React.Component {
 	@MobX.observable protected activeTab: string = App.PATTERN_LIST_ID;
 	private ctrlDown: boolean = false;
 
-	@MobX.observable protected pagePreviewIsOpened: boolean = false;
 	private shiftDown: boolean = false;
 
 	public constructor(props: {}) {
@@ -48,7 +47,6 @@ export class App extends React.Component {
 		this.handleMainWindowClick = this.handleMainWindowClick.bind(this);
 		this.handleCreateNewSpaceClick = this.handleCreateNewSpaceClick.bind(this);
 		this.handleOpenSpaceClick = this.handleOpenSpaceClick.bind(this);
-		this.togglePagePreview = this.togglePagePreview.bind(this);
 	}
 
 	public componentDidMount(): void {
@@ -148,7 +146,7 @@ export class App extends React.Component {
 
 		const DevTools = this.getDevTools();
 
-		console.log('boolean', this.pagePreviewIsOpened);
+		console.log('app store', store.pageOverviewIsOpened);
 
 		return (
 			<Layout directionVertical handleClick={this.handleMainWindowClick}>
@@ -156,7 +154,7 @@ export class App extends React.Component {
 
 				<MainArea>
 					{project &&
-						!this.pagePreviewIsOpened && [
+						!store.pageOverviewIsOpened && [
 							<SideBar key="left" directionVertical hasPaddings>
 								<ElementPane>
 									<ElementList />
@@ -172,7 +170,7 @@ export class App extends React.Component {
 								</PropertyPane>
 							</SideBar>
 						]}
-					{this.pagePreviewIsOpened && (
+					{store.pageOverviewIsOpened && (
 						<PageListPreview>
 							<PageListContainer />
 						</PageListPreview>
@@ -207,14 +205,5 @@ export class App extends React.Component {
 				{DevTools ? <DevTools /> : null}
 			</Layout>
 		);
-	}
-
-	/**
-	 * Toggles the page preview page
-	 * @return void
-	 */
-	@MobX.action
-	public togglePagePreview(): void {
-		this.pagePreviewIsOpened = !this.pagePreviewIsOpened;
 	}
 }

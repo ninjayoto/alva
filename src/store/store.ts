@@ -64,6 +64,11 @@ export class Store {
 	@MobX.observable private elementFocussed?: boolean = false;
 
 	/**
+	 * The current state of the Page Overview
+	 */
+	@MobX.observable public pageOverviewIsOpened: boolean = false;
+
+	/**
 	 * The current search term in the patterns list, or an empty string if there is none.
 	 */
 	@MobX.observable private patternSearchTerm: string = '';
@@ -846,6 +851,16 @@ export class Store {
 		}
 
 		this.clearUndoRedoBuffers();
+	}
+
+	/**
+	 * Toggles the Page Overview layer.
+	 * It toggles between true and false.
+	 * @return void
+	 */
+	@MobX.action
+	public togglePageOverview(): void {
+		this.pageOverviewIsOpened = !this.pageOverviewIsOpened;
 	}
 
 	/**

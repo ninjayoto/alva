@@ -1,8 +1,11 @@
 import Chrome from '../../lsg/patterns/chrome';
+import { Size } from '../../lsg/patterns/copy';
 import { observer } from 'mobx-react';
+import { OverviewSwitchContainer } from './overview-switch-container';
 import { PageRef } from '../../store/page/page-ref';
 import * as React from 'react';
 import { Store } from '../../store/store';
+import { ViewSwitch } from '../../lsg/patterns/view-switch';
 
 @observer
 export class ChromeContainer extends React.Component {
@@ -24,13 +27,17 @@ export class ChromeContainer extends React.Component {
 		}
 
 		return (
-			<Chrome
-				leftVisible={!!previousPage}
-				rightVisible={!!nextPage}
-				onLeftClick={() => (previousPage ? store.openPage(previousPage.getId()) : undefined)}
-				onRightClick={() => (nextPage ? store.openPage(nextPage.getId()) : undefined)}
-				title={page ? page.getName() : undefined}
-			>
+			<Chrome>
+				<OverviewSwitchContainer />
+				<ViewSwitch
+					fontSize={Size.M}
+					justify="center"
+					leftVisible={!!previousPage}
+					rightVisible={!!nextPage}
+					onLeftClick={() => (previousPage ? store.openPage(previousPage.getId()) : undefined)}
+					onRightClick={() => (nextPage ? store.openPage(nextPage.getId()) : undefined)}
+					title={page ? page.getName() : ''}
+				/>
 				{this.props.children}
 			</Chrome>
 		);

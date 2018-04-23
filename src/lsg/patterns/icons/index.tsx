@@ -16,7 +16,7 @@ export interface IconRegistryProps {
 export interface IconProps {
 	className?: string;
 	color?: Color;
-	handleClick?: React.MouseEventHandler<SVGSVGElement>;
+	handleClick?: React.MouseEventHandler<SVGElement>;
 	name: IconName | null;
 	size?: Size;
 }

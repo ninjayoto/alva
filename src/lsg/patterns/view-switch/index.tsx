@@ -1,25 +1,35 @@
 import { colors } from '../colors';
-// import { fonts } from '../fonts';
-import { Icon, IconName, Size as IconSize } from '../icons';
+import { Size } from '../copy';
+import { Icon, IconName, IconProps, Size as IconSize } from '../icons';
 import * as React from 'react';
 import { getSpace, Size as SpaceSize } from '../space';
 import styled from 'styled-components';
 
-export interface SwitchProps {
+export interface ViewSwitchProps {
+	fontSize?: Size;
+	justify?: 'start' | 'center' | 'end' | 'stretch';
 	leftVisible: boolean;
-	onLeftClick: React.MouseEventHandler<HTMLElement>;
-	onRightClick: React.MouseEventHandler<HTMLElement>;
+	onLeftClick: React.MouseEventHandler<SVGElement>;
+	onRightClick: React.MouseEventHandler<SVGElement>;
 	rightVisible: boolean;
 	title: string;
 }
 
-interface StyledIconProps {
-	onClick: React.MouseEventHandler<HTMLElement>;
+interface StyledIconProps extends IconProps {
 	visible: boolean;
 }
 
-const StyledSwitch = styled.div`
-	display: flex;
+interface StyledViewSwitchProps {
+	fontSize?: Size;
+	justify?: 'start' | 'center' | 'end' | 'stretch';
+}
+
+const StyledViewSwitch = styled.div`
+	display: inline-flex;
+	align-self: center;
+	justify-self: ${(props: StyledViewSwitchProps) => props.justify || 'start'};
+	font-size: ${(props: StyledViewSwitchProps) =>
+		props.fontSize ? `${props.fontSize}px` : `${Size.S}px`};
 `;
 
 const StyledTitle = styled.strong`
@@ -30,7 +40,7 @@ const StyledTitle = styled.strong`
 	margin: 0 ${getSpace(SpaceSize.XS)}px;
 	overflow: hidden;
 	color: ${colors.grey36.toString()};
-	font-size: 15px;
+	font-size: inherit;
 	font-weight: normal;
 	text-align: center;
 	text-overflow: ellipsis;
@@ -41,17 +51,19 @@ const StyledIcons = styled(Icon)`
 	padding: ${getSpace(SpaceSize.XS)}px;
 	border-radius: ${getSpace(SpaceSize.XXS)}px;
 	visibility: ${(props: StyledIconProps) => (props.visible ? 'visible' : 'hidden')};
+	cursor: pointer;
+	pointer-events: auto;
 
 	&:hover {
 		background: ${colors.grey90.toString()};
 	}
 `;
 
-const Switch: React.StatelessComponent<SwitchProps> = (props): JSX.Element => (
-	<StyledSwitch>
+export const ViewSwitch: React.StatelessComponent<ViewSwitchProps> = (props): JSX.Element => (
+	<StyledViewSwitch justify={props.justify} fontSize={props.fontSize}>
 		<StyledIcons
 			color={colors.grey60}
-			onClick={props.onLeftClick}
+			handleClick={props.onLeftClick}
 			size={IconSize.XS}
 			name={IconName.ArrowFillLeft}
 			visible={props.leftVisible !== false}
@@ -59,12 +71,10 @@ const Switch: React.StatelessComponent<SwitchProps> = (props): JSX.Element => (
 		<StyledTitle>{props.title}</StyledTitle>
 		<StyledIcons
 			color={colors.grey60}
-			onClick={props.onRightClick}
+			handleClick={props.onRightClick}
 			size={IconSize.XS}
 			name={IconName.ArrowFill}
 			visible={props.rightVisible !== false}
 		/>
-	</StyledSwitch>
+	</StyledViewSwitch>
 );
-
-export default Switch;

@@ -1,9 +1,7 @@
 import { App } from '../../component/container/app';
-import { ipcRenderer, webFrame /*, WebviewTag*/ } from 'electron';
-import { Persister } from '../../store/json';
+import { ipcRenderer, webFrame } from 'electron';
 import * as MobX from 'mobx';
 import { Page } from '../../store/page/page';
-import * as PathUtils from 'path';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Store } from '../../store/store';
@@ -26,29 +24,7 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 
 			{
 				const project = store.getCurrentProject();
-				const pagesPath = store.getPagesPath();
-
-				const pages =
-					typeof project === 'undefined'
-						? []
-						: project
-								.getPages()
-								.map(pageRef => {
-									const persistedPath = pageRef.getLastPersistedPath();
-
-									if (!persistedPath) {
-										return;
-									}
-
-									const pagePath: string = PathUtils.join(pagesPath, persistedPath);
-									// tslint:disable-next-line:no-any
-									const data: any = Persister.loadYamlOrJson(pagePath);
-									const pageData = Page.fromJsonObject(data, pageRef.id).toJsonObject();
-									pageData.id = pageRef.id;
-
-									return pageData;
-								})
-								.filter(Boolean);
+				const pages = store.getCurrentPages();
 
 				const page = store.getCurrentPage();
 				const selectedElement = store.getSelectedElement();

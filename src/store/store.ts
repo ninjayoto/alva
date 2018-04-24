@@ -311,6 +311,34 @@ export class Store {
 		return;
 	}
 
+	public getCurrentPages(): JsonObject[] {
+		const pagesPath = this.getPagesPath();
+		const project = this.getCurrentProject();
+
+		if (!project) {
+			return [];
+		}
+
+		return project
+			.getPages()
+			.map(pageRef => {
+				const persistedPath = pageRef.getLastPersistedPath();
+
+				if (!persistedPath) {
+					return null;
+				}
+
+				const pagePath: string = PathUtils.join(pagesPath, persistedPath);
+				// tslint:disable-next-line:no-any
+				const data: any = Persister.loadYamlOrJson(pagePath);
+				const pageData = Page.fromJsonObject(data, pageRef.id).toJsonObject();
+				pageData.id = pageRef.id;
+
+				return pageData;
+			})
+			.filter((p: JsonObject | null): p is JsonObject => p !== null);
+	}
+
 	/**
 	 * Returns the project that is currently being selected to add, edit, or remove pages of. May be
 	 * undefined if none is selected is none. Opening a page automatically changes the selected

@@ -1,5 +1,4 @@
-export const previewDocument = `
-<!doctype html>
+export const previewDocument = `<!doctype html>
 <html>
 <head>
 	<title>alva&trade;</title>

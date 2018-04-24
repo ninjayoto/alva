@@ -1,9 +1,22 @@
 import { checkForUpdates } from './auto-updater';
 import { app, BrowserWindow, ipcMain, screen } from 'electron';
+import * as Fs from 'fs';
 import * as getPort from 'get-port';
-import * as PathUtils from 'path';
+import * as Path from 'path';
 import { createServer } from './server';
-import * as url from 'url';
+import * as Url from 'url';
+
+const APP_ENTRY = require.resolve('./renderer');
+
+const RENDERER_DOCUMENT = `<!doctype html>
+<html>
+<body>
+	<div id="app"></div>
+	<script>require('${APP_ENTRY}')</script>
+</body>
+</html>`;
+
+Fs.writeFileSync(Path.join(__dirname, 'app.html'), RENDERER_DOCUMENT);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -24,8 +37,8 @@ async function createWindow(): Promise<void> {
 
 	// and load the index.html of the app.
 	win.loadURL(
-		url.format({
-			pathname: PathUtils.join(__dirname, 'renderer', 'app.html'),
+		Url.format({
+			pathname: Path.join(__dirname, 'app.html'),
 			protocol: 'file:',
 			slashes: true
 		})

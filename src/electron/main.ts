@@ -45,11 +45,12 @@ async function createWindow(): Promise<void> {
 
 		switch (payload.type) {
 			case 'app-loaded': {
-				win &&
+				if (win) {
 					win.webContents.send('message', {
 						type: 'start-app',
 						payload: port
 					});
+				}
 			}
 		}
 	});

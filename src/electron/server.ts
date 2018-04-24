@@ -12,6 +12,10 @@ export interface ServerOptions {
 	port: number;
 }
 
+interface StyleguidePattern {
+	[key: string]: string;
+}
+
 const PREVIEW_PATH = Path.join(__dirname, 'preview.js');
 
 export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
@@ -51,6 +55,8 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 			const styleguide = store.getStyleguide();
 
 			if (styleguide) {
+				const init: StyleguidePattern = {};
+
 				const components = styleguide.getPatterns().reduce((acc, pattern) => {
 					const patternPath = pattern.getImplementationPath();
 
@@ -68,7 +74,7 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 						)
 					] = relPath;
 					return acc;
-				}, {});
+				}, init);
 
 				const compiler = webpack({
 					mode: 'development',

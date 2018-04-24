@@ -66,7 +66,7 @@ export const ViewSwitch: React.StatelessComponent<ViewSwitchProps> = (props): JS
 			handleClick={props.onLeftClick}
 			size={IconSize.XS}
 			name={IconName.ArrowFillLeft}
-			visible={props.leftVisible !== false}
+			visible={props.leftVisible}
 		/>
 		<StyledTitle>{props.title}</StyledTitle>
 		<StyledIcons
@@ -74,7 +74,7 @@ export const ViewSwitch: React.StatelessComponent<ViewSwitchProps> = (props): JS
 			handleClick={props.onRightClick}
 			size={IconSize.XS}
 			name={IconName.ArrowFill}
-			visible={props.rightVisible !== false}
+			visible={props.rightVisible}
 		/>
 	</StyledViewSwitch>
 );

@@ -146,12 +146,9 @@ export class App extends React.Component {
 
 		const DevTools = this.getDevTools();
 
-		console.log('app store', store.pageOverviewIsOpened);
-
 		return (
 			<Layout directionVertical handleClick={this.handleMainWindowClick}>
 				<ChromeContainer />
-
 				<MainArea>
 					{project &&
 						!store.pageOverviewIsOpened && [

@@ -2,7 +2,7 @@ import { IconName, IconRegistry } from '../icons';
 import { ViewSwitch } from './index';
 import * as React from 'react';
 
-const DemoViewSwitch: React.StatelessComponent<{}> = (): JSX.Element => (
+const DemoViewSwitch: React.StatelessComponent = (): JSX.Element => (
 	<div>
 		<ViewSwitch
 			onLeftClick={() => null}

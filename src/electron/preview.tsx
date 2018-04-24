@@ -119,11 +119,6 @@ interface PreviewComponentProps {
 	uuid: string;
 }
 
-interface InjectedPreviewComponentProps extends PreviewComponentProps {
-	// tslint:disable-next-line:no-any
-	store: any;
-}
-
 class PreviewComponent extends React.Component<PreviewComponentProps> {
 	public ref: HTMLElement | null;
 

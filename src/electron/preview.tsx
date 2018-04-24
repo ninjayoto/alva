@@ -120,28 +120,12 @@ interface PreviewComponentProps {
 }
 
 class PreviewComponent extends React.Component<PreviewComponentProps> {
-	public ref: HTMLElement | null;
-
-	public componentDidMount(): void {
-		this.onUpdate();
-	}
-
-	public componentDidUpdate(): void {
-		this.onUpdate();
-	}
-
-	private onUpdate(): void {
-		if (this.props.elementId === this.props.uuid) {
-			console.log(this.ref);
-		}
-	}
-
 	public render(): JSX.Element | null {
 		const component = this.props.pattern ? window[safePattern(this.props.pattern)] : null;
 
 		if (!component) {
 			return (
-				<div ref={ref => (this.ref = ref)}>
+				<div>
 					{this.props.children.map(child => (
 						<PreviewComponent elementId={this.props.elementId} key={child.uuid} {...child} />
 					))}
@@ -153,12 +137,7 @@ class PreviewComponent extends React.Component<PreviewComponentProps> {
 		Component.displayName = camelCase(this.props.name);
 
 		return (
-			<Component
-				ref={ref => (this.ref = ref)}
-				innerRef={ref => (this.ref = ref)}
-				{...this.props.properties}
-				data-sketch-name={this.props.name}
-			>
+			<Component {...this.props.properties} data-sketch-name={this.props.name}>
 				{this.props.children.map(child => (
 					<PreviewComponent elementId={this.props.elementId} key={child.uuid} {...child} />
 				))}

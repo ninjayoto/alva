@@ -4,13 +4,13 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 export interface PreviewPaneProps {
-	handleMouseDownLeft?: React.MouseEventHandler<HTMLElement>;
-	handleMouseDownRight?: React.MouseEventHandler<HTMLElement>;
-	handleMouseMove?: React.MouseEventHandler<HTMLElement>;
-	handleMouseUp?: React.MouseEventHandler<HTMLElement>;
+	onMouseDownLeft?: React.MouseEventHandler<HTMLElement>;
+	onMouseDownRight?: React.MouseEventHandler<HTMLElement>;
+	onMouseMove?: React.MouseEventHandler<HTMLElement>;
+	onMouseUp?: React.MouseEventHandler<HTMLElement>;
 	previewFrame?: string;
 	width?: number;
-	handlePreviewWidthUpdate?(previewWidth: number): void;
+	onPreviewWidthUpdate?(previewWidth: number): void;
 }
 
 const StyledPreviewWrapper = styled.div`
@@ -65,42 +65,35 @@ export default class PreviewPane extends React.Component<PreviewPaneProps> {
 	}
 
 	public render(): JSX.Element {
-		const {
-			handleMouseDownLeft,
-			handleMouseDownRight,
-			handleMouseMove,
-			handleMouseUp,
-			width,
-			previewFrame
-		} = this.props;
+		const props = this.props;
 
 		return (
 			<StyledPreviewWrapper
 				innerRef={(ref: HTMLElement) => (this.previewPane = ref)}
-				onMouseMove={handleMouseMove}
-				onMouseUp={handleMouseUp}
+				onMouseMove={props.onMouseMove}
+				onMouseUp={props.onMouseUp}
 			>
-				<StyledPreviewResizer onMouseDown={handleMouseDownLeft} />
-				<StyledPreviewPane width={width}>
+				<StyledPreviewResizer onMouseDown={props.onMouseDownLeft} />
+				<StyledPreviewPane width={props.width}>
 					<StyledPreviewFrame
-						width={width}
+						width={props.width}
 						id="preview"
 						sandbox="allow-scripts"
-						src={previewFrame}
+						src={props.previewFrame}
 					/>
 				</StyledPreviewPane>
-				<StyledPreviewResizer onMouseDown={handleMouseDownRight} />
+				<StyledPreviewResizer onMouseDown={props.onMouseDownRight} />
 			</StyledPreviewWrapper>
 		);
 	}
 
 	private updatePreviewWidth(): void {
-		if (!this.props.handlePreviewWidthUpdate) {
+		if (!this.props.onPreviewWidthUpdate) {
 			return;
 		}
 
 		const previewWidth = this.previewPane.offsetWidth;
-		this.props.handlePreviewWidthUpdate(previewWidth);
+		this.props.onPreviewWidthUpdate(previewWidth);
 	}
 }
 

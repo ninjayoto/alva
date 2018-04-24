@@ -312,29 +312,36 @@ export class Store {
 	}
 
 	public getCurrentPages(): JsonObject[] {
-		const pagesPath = this.getPagesPath();
 		const project = this.getCurrentProject();
+		const currentPage = this.getCurrentPage();
 
 		if (!project) {
 			return [];
 		}
 
+		const pagesPath = this.getPagesPath();
+
 		return project
 			.getPages()
-			.map(pageRef => {
-				const persistedPath = pageRef.getLastPersistedPath();
+			.map(ref => {
+				if (currentPage && ref.getId() === currentPage.getId()) {
+					const d = currentPage.toJsonObject();
+					d.id = ref.id;
+					return d;
+				}
+
+				const persistedPath = ref.getLastPersistedPath();
 
 				if (!persistedPath) {
 					return null;
 				}
 
 				const pagePath: string = PathUtils.join(pagesPath, persistedPath);
+
 				// tslint:disable-next-line:no-any
 				const data: any = Persister.loadYamlOrJson(pagePath);
-				const pageData = Page.fromJsonObject(data, pageRef.id).toJsonObject();
-				pageData.id = pageRef.id;
-
-				return pageData;
+				data.id = ref.id;
+				return data;
 			})
 			.filter((p: JsonObject | null): p is JsonObject => p !== null);
 	}

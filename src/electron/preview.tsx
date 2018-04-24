@@ -31,8 +31,6 @@ function main(): void {
 		const message = parse(e.data);
 		const { type, payload } = message;
 
-		console.log(message);
-
 		switch (type) {
 			case 'project-start':
 				store.set('projectId', payload.projectId);
@@ -47,6 +45,10 @@ function main(): void {
 				break;
 			case 'page-change':
 				store.set('pageId', payload);
+				break;
+			case 'tree-change':
+				store.set('pages', payload);
+				scheduleScript(store);
 				break;
 			case 'element-change': {
 				store.set('elementId', payload);

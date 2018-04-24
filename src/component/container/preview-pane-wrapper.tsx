@@ -5,27 +5,18 @@ export interface ElementWrapperState {
 	direction: number;
 	isResizing: boolean;
 	maxWidth: number;
-	mousePosition?: number;
+	mousePosition: number | null;
 	width: number;
 }
 
 export class PreviewPaneWrapper extends React.Component<PreviewPaneProps, ElementWrapperState> {
-	public constructor(props: {}) {
-		super(props);
-
-		this.state = {
-			isResizing: false,
-			direction: 1,
-			width: 0,
-			maxWidth: 0
-		};
-
-		this.handleMouseDownRight = this.handleMouseDownRight.bind(this);
-		this.handleMouseDownLeft = this.handleMouseDownLeft.bind(this);
-		this.handleMouseUp = this.handleMouseUp.bind(this);
-		this.handleMouseMove = this.handleMouseMove.bind(this);
-		this.handlePreviewWidthUpdate = this.handlePreviewWidthUpdate.bind(this);
-	}
+	public state = {
+		isResizing: false,
+		direction: 1,
+		width: 0,
+		maxWidth: 0,
+		mousePosition: null
+	};
 
 	private handleMouseDownLeft(e: React.MouseEvent<HTMLElement>): void {
 		this.setState({
@@ -46,14 +37,14 @@ export class PreviewPaneWrapper extends React.Component<PreviewPaneProps, Elemen
 	private handleMouseMove(e: React.MouseEvent<HTMLElement>): void {
 		const { maxWidth, mousePosition, width, direction } = this.state;
 
-		if (!mousePosition) {
+		if (mousePosition === null) {
 			return;
 		}
 
 		if (e.buttons % 2 === 0) {
 			this.setState({
 				isResizing: false,
-				mousePosition: undefined
+				mousePosition: null
 			});
 			return;
 		}
@@ -71,7 +62,7 @@ export class PreviewPaneWrapper extends React.Component<PreviewPaneProps, Elemen
 	private handleMouseUp(): void {
 		this.setState({
 			isResizing: false,
-			mousePosition: undefined
+			mousePosition: null
 		});
 	}
 
@@ -85,11 +76,11 @@ export class PreviewPaneWrapper extends React.Component<PreviewPaneProps, Elemen
 	public render(): JSX.Element {
 		return (
 			<PreviewPane
-				onMouseDownLeft={this.handleMouseDownLeft}
-				onMouseDownRight={this.handleMouseDownRight}
-				onMouseMove={this.handleMouseMove}
-				onMouseUp={this.handleMouseUp}
-				onPreviewWidthUpdate={this.handlePreviewWidthUpdate}
+				onMouseDownLeft={e => this.handleMouseDownLeft(e)}
+				onMouseDownRight={e => this.handleMouseDownRight(e)}
+				onMouseMove={e => this.handleMouseMove(e)}
+				onMouseUp={() => this.handleMouseUp()}
+				onPreviewWidthUpdate={e => this.handlePreviewWidthUpdate(e)}
 				width={this.state.width}
 				previewFrame={this.props.previewFrame}
 			/>

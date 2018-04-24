@@ -1,4 +1,4 @@
-import { HighlightArea } from '../styleguide/renderer/highlight-area';
+import { HighlightArea } from './highlight-area';
 import { camelCase } from 'lodash';
 import * as MobX from 'mobx';
 import * as MobXReact from 'mobx-react';
@@ -74,11 +74,12 @@ function parse(data: string): any {
 }
 
 interface InjectedPreviewApplicationProps {
+	highlight: HighlightArea;
 	// tslint:disable-next-line:no-any
 	store: any;
 }
 
-@MobXReact.inject('store')
+@MobXReact.inject('store', 'highlight')
 @MobXReact.observer
 class PreviewApplication extends React.Component {
 	public render(): JSX.Element | null {
@@ -87,7 +88,6 @@ class PreviewApplication extends React.Component {
 		const pageId = props.store.get('pageId');
 		const page = pages.find(p => p.id === pageId);
 		const tasks = props.store.get('tasks');
-		const elementId = props.store.get('elementId');
 
 		if (!page || tasks.length > 0) {
 			return null;
@@ -103,7 +103,6 @@ class PreviewApplication extends React.Component {
 					properties={component.properties}
 					name={component.name}
 					uuid={component.uuid}
-					elementId={elementId}
 				/>
 				<PreviewHighlight />
 			</React.Fragment>
@@ -113,7 +112,6 @@ class PreviewApplication extends React.Component {
 
 interface PreviewComponentProps {
 	children: PreviewComponentProps[];
-	elementId: string;
 	name: string;
 	pattern: string;
 	// tslint:disable-next-line:no-any
@@ -121,16 +119,40 @@ interface PreviewComponentProps {
 	uuid: string;
 }
 
+interface InjectedPreviewComponentProps extends PreviewComponentProps {
+	highlight: HighlightArea;
+	// tslint:disable-next-line:no-any
+	store: any;
+}
+
+@MobXReact.inject('highlight', 'store')
+@MobXReact.observer
 class PreviewComponent extends React.Component<PreviewComponentProps> {
+	public componentWillUpdate(): void {
+		const props = this.props as InjectedPreviewComponentProps;
+
+		if (props.uuid === props.store.get('elementId')) {
+			const node = ReactDom.findDOMNode(this);
+			if (node) {
+				props.highlight.show(node as Element, props.uuid);
+				setTimeout(() => {
+					props.store.set('elementId', null);
+				}, 500);
+			}
+		}
+	}
+
 	public render(): JSX.Element | null {
-		const component = this.props.pattern ? window[safePattern(this.props.pattern)] : null;
+		const props = this.props as InjectedPreviewComponentProps;
+		const component = props.pattern ? window[safePattern(props.pattern)] : null;
+
+		// Access elementId in render method to trigger MobX subscription
+		props.store.get('elementId');
 
 		if (!component) {
 			return (
 				<div>
-					{this.props.children.map(child => (
-						<PreviewComponent elementId={this.props.elementId} key={child.uuid} {...child} />
-					))}
+					{this.props.children.map(child => <PreviewComponent key={child.uuid} {...child} />)}
 				</div>
 			);
 		}
@@ -140,9 +162,7 @@ class PreviewComponent extends React.Component<PreviewComponentProps> {
 
 		return (
 			<Component {...this.props.properties} data-sketch-name={this.props.name}>
-				{this.props.children.map(child => (
-					<PreviewComponent elementId={this.props.elementId} key={child.uuid} {...child} />
-				))}
+				{this.props.children.map(child => <PreviewComponent key={child.uuid} {...child} />)}
 			</Component>
 		);
 	}

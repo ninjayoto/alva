@@ -16,7 +16,7 @@ interface StyleguidePattern {
 	[key: string]: string;
 }
 
-const PREVIEW_PATH = Path.join(__dirname, 'preview.js');
+const PREVIEW_PATH = require.resolve('./preview');
 
 export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 	const store = Store.getInstance();

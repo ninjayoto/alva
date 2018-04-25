@@ -1,6 +1,6 @@
 import * as HtmlSketchApp from '@brainly/html-sketchapp';
 import { HighlightArea } from './highlight-area';
-import { camelCase } from 'lodash';
+import { camelCase, omit } from 'lodash';
 import * as MobX from 'mobx';
 import * as MobXReact from 'mobx-react';
 import * as Path from 'path';
@@ -187,24 +187,22 @@ class PreviewComponent extends React.Component<PreviewComponentProps> {
 
 	public render(): JSX.Element | null {
 		const props = this.props as InjectedPreviewComponentProps;
-		const component = props.pattern ? window[safePattern(props.pattern)] : null;
-		const contents = typeof props.contents.default === 'undefined' ? [] : props.contents.default;
+		const contents = props.contents ? props.contents : {};
+		const children = typeof contents.default === 'undefined' ? [] : contents.default;
+		const slots = omit(contents, ['default']);
 
 		// Access elementId in render method to trigger MobX subscription
 		props.store.get('elementId');
 
-		if (!component) {
-			return (
-				<div>{contents.map(child => <PreviewComponent key={child.uuid} {...child} />)}</div>
-			);
+		const Component = getComponent(props);
+
+		if (!Component) {
+			return null;
 		}
 
-		const Component = typeof component.default === 'function' ? component.default : component;
-		Component.displayName = camelCase(this.props.name);
-
 		return (
-			<Component {...props.properties} data-sketch-name={props.name}>
-				{contents.map(child => <PreviewComponent key={child.uuid} {...child} />)}
+			<Component {...slots} {...props.properties} data-sketch-name={props.name}>
+				{children.map(child => <PreviewComponent key={child.uuid} {...child} />)}
 			</Component>
 		);
 	}
@@ -256,6 +254,20 @@ interface TreeNode {
 	pattern: string;
 }
 
+// tslint:disable-next-line:no-any
+function getComponent(props: any): string | React.SFC<any> | null {
+	const component = props.pattern ? window[safePattern(props.pattern)] : null;
+
+	if (!component) {
+		return null;
+	}
+
+	const Component = typeof component.default === 'function' ? component.default : component;
+	Component.displayName = camelCase(props.name);
+
+	return Component;
+}
+
 function safePattern(id: string): string {
 	return encodeURIComponent(id.split(Path.sep).join('-'));
 }
@@ -265,12 +277,12 @@ function deriveComponents(tree: TreeNode, init: Set<string> = new Set()): Set<st
 		init.add(tree.pattern);
 	}
 
-	const children = typeof tree.contents.default === 'undefined' ? [] : tree.contents.default;
-
-	return children.reduce((acc, node) => {
-		deriveComponents(node, acc);
-		return acc;
-	}, init);
+	return Object.keys(tree.contents || {})
+		.reduce((acc, key) => [...acc, ...tree.contents[key]], [])
+		.reduce((acc, node) => {
+			deriveComponents(node, acc);
+			return acc;
+		}, init);
 }
 
 // tslint:disable-next-line:no-any

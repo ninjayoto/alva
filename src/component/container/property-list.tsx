@@ -9,6 +9,7 @@ import * as MobX from 'mobx';
 import { observer } from 'mobx-react';
 import { ObjectProperty } from '../../store/styleguide/property/object-property';
 import { PageElement } from '../../store/page/page-element';
+import { PropertyItem } from '../../lsg/patterns/property-item';
 import { PropertyValue } from '../../store/page/property-value';
 import { PropertyValueCommand } from '../../store/command/property-value-command';
 import * as React from 'react';
@@ -127,25 +128,35 @@ class PropertyTree extends React.Component<PropertyTreeProps> {
 					switch (type) {
 						case 'boolean':
 							return (
-								<BooleanItem
-									key={id}
-									label={name}
-									checked={value as boolean}
-									handleChange={event => this.handleChange(id, !value, context)}
-								/>
+								<PropertyItem
+									propertyName={name}
+									selectedPropertyType=""
+									propertyTypes={[]}
+								>
+									<BooleanItem
+										key={id}
+										checked={value as boolean}
+										handleChange={event => this.handleChange(id, !value, context)}
+									/>
+								</PropertyItem>
 							);
 
 						case 'string':
 							return (
-								<StringItem
-									key={id}
-									label={name}
-									value={value as string}
-									handleChange={event =>
-										this.handleChange(id, event.currentTarget.value, context)
-									}
-									handleBlur={event => this.handleBlur()}
-								/>
+								<PropertyItem
+									propertyName={name}
+									selectedPropertyType=""
+									propertyTypes={[]}
+								>
+									<StringItem
+										key={id}
+										value={value as string}
+										handleChange={event =>
+											this.handleChange(id, event.currentTarget.value, context)
+										}
+										handleBlur={event => this.handleBlur()}
+									/>
+								</PropertyItem>
 							);
 
 						case 'enum':
@@ -155,31 +166,41 @@ class PropertyTree extends React.Component<PropertyTreeProps> {
 							);
 
 							return (
-								<EnumItem
-									key={id}
-									label={name}
-									selectedValue={option && option.getId()}
-									values={this.convertOptionsToValues(options)}
-									handleChange={event =>
-										this.handleChange(id, event.currentTarget.value, context)
-									}
-								/>
+								<PropertyItem
+									propertyName={name}
+									selectedPropertyType=""
+									propertyTypes={[]}
+								>
+									<EnumItem
+										key={id}
+										selectedValue={option && option.getId()}
+										values={this.convertOptionsToValues(options)}
+										handleChange={event =>
+											this.handleChange(id, event.currentTarget.value, context)
+										}
+									/>
+								</PropertyItem>
 							);
 
 						case 'asset':
 							const src = value as string | undefined;
 							return (
-								<AssetItem
-									key={id}
-									label={name}
-									inputValue={src && !src.startsWith('data:') ? src : ''}
-									imageSrc={src}
-									handleInputChange={event =>
-										this.handleChange(id, event.currentTarget.value, context)
-									}
-									handleChooseClick={event => this.handleChooseAsset(id, context)}
-									handleClearClick={event => this.handleChange(id, undefined, context)}
-								/>
+								<PropertyItem
+									propertyName={name}
+									selectedPropertyType=""
+									propertyTypes={[]}
+								>
+									<AssetItem
+										key={id}
+										inputValue={src && !src.startsWith('data:') ? src : ''}
+										imageSrc={src}
+										handleInputChange={event =>
+											this.handleChange(id, event.currentTarget.value, context)
+										}
+										handleChooseClick={event => this.handleChooseAsset(id, context)}
+										handleClearClick={event => this.handleChange(id, undefined, context)}
+									/>
+								</PropertyItem>
 							);
 
 						case 'object':
@@ -191,10 +212,26 @@ class PropertyTree extends React.Component<PropertyTreeProps> {
 								property: objectProperty
 							};
 
-							return <PropertyTree key={id} context={newContext} element={element} />;
+							return (
+								<PropertyItem
+									propertyName={name}
+									selectedPropertyType=""
+									propertyTypes={[]}
+								>
+									<PropertyTree key={id} context={newContext} element={element} />
+								</PropertyItem>
+							);
 
 						default:
-							return <div key={id}>Unknown type: {type}</div>;
+							return (
+								<PropertyItem
+									propertyName={name}
+									selectedPropertyType=""
+									propertyTypes={[]}
+								>
+									<div key={id}>Unknown type: {type}</div>
+								</PropertyItem>
+							);
 					}
 				})}
 			</>

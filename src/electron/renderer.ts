@@ -22,6 +22,8 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 			const store = Store.getInstance();
 			store.openFromPreferences();
 
+			store.setPort(message.payload);
+
 			{
 				const project = store.getCurrentProject();
 				const pages = store.getCurrentPages();

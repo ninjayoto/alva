@@ -38,6 +38,8 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 			console.error(err);
 		});
 
+		ws.on('message', message => emitter.emit('client-message', message));
+
 		if (startMessage) {
 			ws.send(JSON.stringify(startMessage));
 		}

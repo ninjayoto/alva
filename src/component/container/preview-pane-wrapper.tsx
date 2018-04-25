@@ -74,15 +74,17 @@ export class PreviewPaneWrapper extends React.Component<PreviewPaneProps, Elemen
 	}
 
 	public render(): JSX.Element {
+		const { props } = this;
 		return (
 			<PreviewPane
+				id={props.id}
 				onMouseDownLeft={e => this.handleMouseDownLeft(e)}
 				onMouseDownRight={e => this.handleMouseDownRight(e)}
 				onMouseMove={e => this.handleMouseMove(e)}
 				onMouseUp={() => this.handleMouseUp()}
 				onPreviewWidthUpdate={e => this.handlePreviewWidthUpdate(e)}
-				width={this.state.width}
 				previewFrame={this.props.previewFrame}
+				width={this.state.width}
 			/>
 		);
 	}

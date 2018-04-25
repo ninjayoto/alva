@@ -1,3 +1,4 @@
+import * as HtmlSketchApp from '@brainly/html-sketchapp';
 import { HighlightArea } from './highlight-area';
 import { camelCase } from 'lodash';
 import * as MobX from 'mobx';
@@ -29,7 +30,7 @@ function main(): void {
 
 	connection.addEventListener('message', (e: MessageEvent) => {
 		const message = parse(e.data);
-		const { type, payload } = message;
+		const { type, id, payload } = message;
 
 		switch (type) {
 			case 'project-start':
@@ -52,6 +53,46 @@ function main(): void {
 				break;
 			case 'element-change': {
 				store.set('elementId', payload);
+				break;
+			}
+			case 'content-request': {
+				const rec = document.documentElement.getBoundingClientRect();
+
+				connection.send(
+					JSON.stringify({
+						type: 'content-response',
+						id,
+						payload: {
+							document: new XMLSerializer().serializeToString(document),
+							location: window.location.href,
+							height: rec.height,
+							width: rec.width
+						}
+					})
+				);
+
+				break;
+			}
+			case 'sketch-request': {
+				const sketchPage = HtmlSketchApp.nodeTreeToSketchPage(document.documentElement, {
+					pageName: payload.pageName,
+					addArtboard: true,
+					artboardName: payload.artboardName,
+					getGroupName: node =>
+						node.getAttribute('data-sketch-name') || `(${node.nodeName.toLowerCase()})`,
+					getRectangleName: () => 'background',
+					skipSystemFonts: true
+				});
+
+				const page = sketchPage.toJSON();
+
+				connection.send(
+					JSON.stringify({
+						type: 'sketch-response',
+						id,
+						payload: { page }
+					})
+				);
 			}
 		}
 	});

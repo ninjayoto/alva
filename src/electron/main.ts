@@ -49,6 +49,13 @@ async function createWindow(): Promise<void> {
 	const server = await createServer({ port });
 
 	// tslint:disable-next-line:no-any
+	const send = (message: any) => {
+		if (win) {
+			win.webContents.send('message', message);
+		}
+	};
+
+	// tslint:disable-next-line:no-any
 	ipcMain.on('message', (e: Electron.Event, payload: any) => {
 		if (!payload) {
 			return;
@@ -65,6 +72,31 @@ async function createWindow(): Promise<void> {
 					});
 				}
 			}
+		}
+	});
+
+	// tslint:disable-next-line:no-any
+	server.on('client-message', (envelope: any) => {
+		try {
+			const message = JSON.parse(envelope);
+			switch (message.type) {
+				case 'content-response':
+					send({
+						id: message.id,
+						payload: message.payload,
+						type: message.type
+					});
+					break;
+				case 'sketch-response':
+					send({
+						id: message.id,
+						payload: message.payload,
+						type: message.type
+					});
+			}
+		} catch (err) {
+			console.error('Error while receiving client message');
+			console.error(err);
 		}
 	});
 

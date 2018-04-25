@@ -4,6 +4,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 export interface PreviewPaneProps {
+	id?: string;
 	onMouseDownLeft?: React.MouseEventHandler<HTMLElement>;
 	onMouseDownRight?: React.MouseEventHandler<HTMLElement>;
 	onMouseMove?: React.MouseEventHandler<HTMLElement>;
@@ -75,12 +76,7 @@ export default class PreviewPane extends React.Component<PreviewPaneProps> {
 			>
 				<StyledPreviewResizer onMouseDown={props.onMouseDownLeft} />
 				<StyledPreviewPane width={props.width}>
-					<StyledPreviewFrame
-						width={props.width}
-						id="preview"
-						sandbox="allow-scripts"
-						src={props.previewFrame}
-					/>
+					<StyledPreviewFrame src={props.previewFrame} />
 				</StyledPreviewPane>
 				<StyledPreviewResizer onMouseDown={props.onMouseDownRight} />
 			</StyledPreviewWrapper>
@@ -98,6 +94,7 @@ export default class PreviewPane extends React.Component<PreviewPaneProps> {
 }
 
 const StyledPreviewFrame = styled('iframe')`
+	width: 100%;
 	height: 100%;
 	border: none;
 	border-radius: 6px 6px 0 0;

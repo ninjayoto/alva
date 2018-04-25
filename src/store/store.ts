@@ -69,6 +69,11 @@ export class Store {
 	@MobX.observable private patternSearchTerm: string = '';
 
 	/**
+	 * http port the preview server is listening on
+	 */
+	@MobX.observable private port: number = 1879;
+
+	/**
 	 * The internal data storage for preferences, i.e. personal settings
 	 * saved in the user's home directory (.alva-prefs.yaml).
 	 */
@@ -417,6 +422,10 @@ export class Store {
 	 */
 	public getPatternSearchTerm(): string {
 		return this.patternSearchTerm;
+	}
+
+	public getPort(): number {
+		return this.port;
 	}
 
 	/**
@@ -851,6 +860,14 @@ export class Store {
 	 */
 	public setPatternSearchTerm(patternSearchTerm: string): void {
 		this.patternSearchTerm = patternSearchTerm;
+	}
+
+	/**
+	 * Set the port the preview server is listening to
+	 * @param port
+	 */
+	public setPort(port: number): void {
+		this.port = port;
 	}
 
 	/**

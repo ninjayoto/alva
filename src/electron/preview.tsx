@@ -139,7 +139,7 @@ class PreviewApplication extends React.Component {
 		return (
 			<React.Fragment>
 				<PreviewComponent
-					children={component.children}
+					contents={component.contents}
 					pattern={component.pattern}
 					properties={component.properties}
 					name={component.name}
@@ -152,7 +152,9 @@ class PreviewApplication extends React.Component {
 }
 
 interface PreviewComponentProps {
-	children: PreviewComponentProps[];
+	contents: {
+		[slot: string]: PreviewComponentProps[];
+	};
 	name: string;
 	pattern: string;
 	// tslint:disable-next-line:no-any
@@ -186,15 +188,14 @@ class PreviewComponent extends React.Component<PreviewComponentProps> {
 	public render(): JSX.Element | null {
 		const props = this.props as InjectedPreviewComponentProps;
 		const component = props.pattern ? window[safePattern(props.pattern)] : null;
+		const contents = typeof props.contents.default === 'undefined' ? [] : props.contents.default;
 
 		// Access elementId in render method to trigger MobX subscription
 		props.store.get('elementId');
 
 		if (!component) {
 			return (
-				<div>
-					{this.props.children.map(child => <PreviewComponent key={child.uuid} {...child} />)}
-				</div>
+				<div>{contents.map(child => <PreviewComponent key={child.uuid} {...child} />)}</div>
 			);
 		}
 
@@ -202,8 +203,8 @@ class PreviewComponent extends React.Component<PreviewComponentProps> {
 		Component.displayName = camelCase(this.props.name);
 
 		return (
-			<Component {...this.props.properties} data-sketch-name={this.props.name}>
-				{this.props.children.map(child => <PreviewComponent key={child.uuid} {...child} />)}
+			<Component {...props.properties} data-sketch-name={props.name}>
+				{contents.map(child => <PreviewComponent key={child.uuid} {...child} />)}
 			</Component>
 		);
 	}
@@ -249,7 +250,9 @@ class PreviewHighlight extends React.Component {
 }
 
 interface TreeNode {
-	children: TreeNode[];
+	contents: {
+		[slot: string]: PreviewComponentProps[];
+	};
 	pattern: string;
 }
 
@@ -262,7 +265,9 @@ function deriveComponents(tree: TreeNode, init: Set<string> = new Set()): Set<st
 		init.add(tree.pattern);
 	}
 
-	return tree.children.reduce((acc, node) => {
+	const children = typeof tree.contents.default === 'undefined' ? [] : tree.contents.default;
+
+	return children.reduce((acc, node) => {
 		deriveComponents(node, acc);
 		return acc;
 	}, init);

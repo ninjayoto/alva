@@ -1,4 +1,5 @@
 import StringItem from './index';
+import PropertyItem from '../../property-item';
 import * as React from 'react';
 import styled from 'styled-components';
 
@@ -12,14 +13,17 @@ const StyledDemo = styled.div`
 const StringItemDemo: React.StatelessComponent<void> = (): JSX.Element => (
 	<div>
 		<StyledDemo>
-			<StringItem handleChange={NOOP} label="Text" />
+			<PropertyItem propertyName="Text" propertyTypes={[]} selectedPropertyType="">
+				<StringItem handleChange={NOOP} />
+			</PropertyItem>
 		</StyledDemo>
 		<StyledDemo>
-			<StringItem
-				handleChange={NOOP}
-				label="Text"
-				value="this is a very long example text to test text overflow and stuff"
-			/>
+			<PropertyItem propertyName="Text" propertyTypes={[]} selectedPropertyType="">
+				<StringItem
+					handleChange={NOOP}
+					value="this is a very long example text to test text overflow and stuff"
+				/>
+			</PropertyItem>
 		</StyledDemo>
 	</div>
 );

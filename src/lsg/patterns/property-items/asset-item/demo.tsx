@@ -1,4 +1,5 @@
 import AssetItem from './index';
+import PropertyItem from '../../property-item';
 import * as React from 'react';
 import styled from 'styled-components';
 
@@ -12,25 +13,29 @@ const StyledDemo = styled.div`
 const AssetItemDemo: React.StatelessComponent<void> = (): JSX.Element => (
 	<div>
 		<StyledDemo>
-			<AssetItem label="Empty" />
+			<PropertyItem propertyName="Empty" propertyTypes={[]} selectedPropertyType="">
+				<AssetItem />
+			</PropertyItem>
 		</StyledDemo>
 		<StyledDemo>
-			<AssetItem
-				handleChooseClick={NOOP}
-				handleClearClick={NOOP}
-				handleInputChange={NOOP}
-				label="Internal"
-				imageSrc="http://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/light-bulb-icon.png"
-			/>
+			<PropertyItem propertyName="Internal" propertyTypes={[]} selectedPropertyType="">
+				<AssetItem
+					handleChooseClick={NOOP}
+					handleClearClick={NOOP}
+					handleInputChange={NOOP}
+					imageSrc="http://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/light-bulb-icon.png"
+				/>
+			</PropertyItem>
 		</StyledDemo>
 		<StyledDemo>
-			<AssetItem
-				handleChooseClick={NOOP}
-				handleClearClick={NOOP}
-				handleInputChange={NOOP}
-				label="External"
-				inputValue="http://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/light-bulb-icon.png"
-			/>
+			<PropertyItem propertyName="External" propertyTypes={[]} selectedPropertyType="">
+				<AssetItem
+					handleChooseClick={NOOP}
+					handleClearClick={NOOP}
+					handleInputChange={NOOP}
+					inputValue="http://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/light-bulb-icon.png"
+				/>
+			</PropertyItem>
 		</StyledDemo>
 	</div>
 );

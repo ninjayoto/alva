@@ -1,4 +1,5 @@
 import EnumItem, { Values } from './index';
+import PropertyItem from '../../property-item';
 import * as React from 'react';
 import styled from 'styled-components';
 
@@ -33,16 +34,19 @@ export class BooleanItemDemo extends React.Component<{}, EnumItemDemoState> {
 		return (
 			<div>
 				<StyledDemo>
-					<EnumItem label="Label" values={this.state.values} />
+					<PropertyItem propertyName="Label" propertyTypes={[]} selectedPropertyType="">
+						<EnumItem values={this.state.values} />
+					</PropertyItem>
 				</StyledDemo>
 				<StyledDemo>
 					Required
-					<EnumItem
-						label="Label"
-						values={this.state.values}
-						selectedValue={this.state.selectedItem}
-						required
-					/>
+					<PropertyItem propertyName="Label" propertyTypes={[]} selectedPropertyType="">
+						<EnumItem
+							values={this.state.values}
+							selectedValue={this.state.selectedItem}
+							required
+						/>
+					</PropertyItem>
 				</StyledDemo>
 			</div>
 		);

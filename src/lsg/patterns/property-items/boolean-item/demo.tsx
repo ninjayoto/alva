@@ -1,4 +1,5 @@
 import BooleanItem from './index';
+import PropertyItem from '../../property-item';
 import * as React from 'react';
 import styled from 'styled-components';
 
@@ -32,18 +33,14 @@ export class BooleanItemDemo extends React.Component<{}, BooleanItemDemoState> {
 		return (
 			<div>
 				<StyledDemo>
-					<BooleanItem
-						label="Visibility"
-						checked={this.state.checked}
-						handleChange={this.handleChange}
-					/>
+					<PropertyItem propertyName="Visibility" propertyTypes={[]} selectedPropertyType="">
+						<BooleanItem checked={this.state.checked} handleChange={this.handleChange} />
+					</PropertyItem>
 				</StyledDemo>
 				<StyledDemo>
-					<BooleanItem
-						label="Spacing"
-						checked={!this.state.checked}
-						handleChange={this.handleChange}
-					/>
+					<PropertyItem propertyName="Spacing" propertyTypes={[]} selectedPropertyType="">
+						<BooleanItem checked={!this.state.checked} handleChange={this.handleChange} />
+					</PropertyItem>
 				</StyledDemo>
 			</div>
 		);

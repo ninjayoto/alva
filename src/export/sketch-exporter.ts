@@ -70,7 +70,8 @@ export class SketchExporter extends Exporter {
 				}
 
 				this.contents = Buffer.from(JSON.stringify(message.payload.page, null, '\t'));
-				return resolve({ result: this.contents });
+				resolve({ result: this.contents });
+				return;
 			};
 
 			ipcRenderer.on('message', receive);

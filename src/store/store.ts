@@ -13,6 +13,7 @@ import * as PathUtils from 'path';
 import { Preferences } from './preferences';
 import { Project } from './project';
 import { Styleguide } from './styleguide/styleguide';
+import * as username from 'username';
 
 /**
  * The central entry-point for all application state, managed by MobX.
@@ -115,6 +116,11 @@ export class Store {
 	@MobX.observable private undoBuffer: Command[] = [];
 
 	/**
+	 * A cache of the currently logged-in user's name.
+	 */
+	private username: string;
+
+	/**
 	 * Creates a new store.
 	 */
 	private constructor(basePreferencePath?: string) {
@@ -199,35 +205,38 @@ export class Store {
 	 * Executes a user command (user operation) and registers it as undoable command.
 	 * @param command The command to execute and register.
 	 */
+	@MobX.action
 	public execute(command: Command): void {
-		const successful: boolean = command.execute();
-		if (!successful) {
-			// The state and the undo/redo buffers are out of sync.
-			// This may be the case if not all store operations are proper command implementations.
-			// In that case, the store is correct and we drop the undo/redo buffers.
-			this.clearUndoRedoBuffers();
-			return;
-		}
+		MobX.transaction(() => {
+			const successful: boolean = command.execute();
+			if (!successful) {
+				// The state and the undo/redo buffers are out of sync.
+				// This may be the case if not all store operations are proper command implementations.
+				// In that case, the store is correct and we drop the undo/redo buffers.
+				this.clearUndoRedoBuffers();
+				return;
+			}
 
-		// The command was processed successfully, now memorize it to provide an undo stack.
+			// The command was processed successfully, now memorize it to provide an undo stack.
 
-		// But first, we give the command the chance to indicate that the previous undo command
-		// and the current one are too similar to keep both. If so, the newer command
-		// incorporates both commands' changes into itself, and we keep only that newer one
-		// on the undo stack.
+			// But first, we give the command the chance to indicate that the previous undo command
+			// and the current one are too similar to keep both. If so, the newer command
+			// incorporates both commands' changes into itself, and we keep only that newer one
+			// on the undo stack.
 
-		const previousCommand = this.undoBuffer[this.undoBuffer.length - 1];
-		const wasMerged = previousCommand && command.maybeMergeWith(previousCommand);
-		if (wasMerged) {
-			// The newer command now contains both changes, so we drop the previous one
-			this.undoBuffer.pop();
-		}
+			const previousCommand = this.undoBuffer[this.undoBuffer.length - 1];
+			const wasMerged = previousCommand && command.maybeMergeWith(previousCommand);
+			if (wasMerged) {
+				// The newer command now contains both changes, so we drop the previous one
+				this.undoBuffer.pop();
+			}
 
-		// Now memorize the new command
-		this.undoBuffer.push(command);
+			// Now memorize the new command
+			this.undoBuffer.push(command);
 
-		// All previously undone commands (the redo stack) are invalid after a forward command
-		this.redoBuffer = [];
+			// All previously undone commands (the redo stack) are invalid after a forward command
+			this.redoBuffer = [];
+		});
 	}
 
 	/**
@@ -431,6 +440,22 @@ export class Store {
 	}
 
 	/**
+	 * Returns the currently logged-in user's name.
+	 * @return The user name.
+	 */
+	public getUsername(): string {
+		console.log('Getting user name');
+		if (!this.username) {
+			console.log('Getting user name int');
+			this.username = username.sync();
+			console.log('Getting user name done int');
+		}
+
+		console.log('Getting user name done');
+		return this.username;
+	}
+
+	/**
 	 * Returns whether there is a user comment (user operation) to redo.
 	 * @return Whether there is a user comment (user operation) to redo.
 	 * @see redo
@@ -618,6 +643,7 @@ export class Store {
 	 * @return Whether the redo was successful.
 	 * @see hasRedoCommand
 	 */
+	@MobX.action
 	public redo(): boolean {
 		const command: Command | undefined = this.redoBuffer.pop();
 		if (!command) {
@@ -840,7 +866,13 @@ export class Store {
 				this.relativePatternsPath.split('/').join(PathUtils.sep)
 			);
 
-			this.styleguide = new Styleguide(styleguidePath, patternsPath, this.analyzerName);
+			if (
+				!this.styleguide ||
+				this.styleguide.getPatternsPath() !== patternsPath ||
+				this.analyzerName !== this.analyzerName
+			) {
+				this.styleguide = new Styleguide(styleguidePath, patternsPath, this.analyzerName);
+			}
 		} else {
 			this.styleguide = undefined;
 		}
@@ -853,6 +885,7 @@ export class Store {
 	 * @return Whether the undo was successful.
 	 * @see hasUndoCommand
 	 */
+	@MobX.action
 	public undo(): boolean {
 		const command: Command | undefined = this.undoBuffer.pop();
 		if (!command) {

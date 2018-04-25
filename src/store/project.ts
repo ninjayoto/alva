@@ -2,7 +2,6 @@ import { JsonArray, JsonObject } from './json';
 import * as MobX from 'mobx';
 import { PageRef } from './page/page-ref';
 import { Store } from './store';
-import * as username from 'username';
 import * as Uuid from 'uuid';
 
 export interface ProjectProperties {
@@ -190,11 +189,10 @@ export class Project {
 	/**
 	 * Updates the last-changed date and author. Call this on any page or project user command.
 	 */
+	@MobX.action
 	public touch(): void {
-		void (async () => {
-			this.lastChangedAuthor = await username();
-			this.lastChangedDate = new Date();
-		})();
+		this.lastChangedAuthor = Store.getInstance().getUsername();
+		this.lastChangedDate = new Date();
 	}
 
 	/**

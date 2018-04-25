@@ -1,4 +1,3 @@
-// import * as MobX from 'mobx';
 import { observer } from 'mobx-react';
 import { Project } from '../../store/project';
 import * as React from 'react';
@@ -22,7 +21,6 @@ export class OverviewSwitchContainer extends React.Component {
 		return (
 			<ViewSwitch
 				onLeftClick={() => store.togglePageOverview()}
-				onRightClick={() => null}
 				leftVisible={true}
 				rightVisible={false}
 				title={`${this.getName()} Overview`}

@@ -1,7 +1,8 @@
 import Chrome from '../../lsg/patterns/chrome';
-import { Size } from '../../lsg/patterns/copy';
+import { Size as FontSize } from '../../lsg/patterns/copy';
 import { observer } from 'mobx-react';
 import { OverviewSwitchContainer } from './overview-switch-container';
+import { Page } from '../../store/page/page';
 import { PageRef } from '../../store/page/page-ref';
 import * as React from 'react';
 import { Store } from '../../store/store';
@@ -9,14 +10,26 @@ import { ViewSwitch } from '../../lsg/patterns/view-switch';
 
 @observer
 export class ChromeContainer extends React.Component {
+	protected store = Store.getInstance();
+
+	protected getCurrentPage(): Page | undefined {
+		return this.store.getCurrentPage();
+	}
+
+	protected openPage(page: PageRef | undefined): void {
+		if (page) {
+			this.store.openPage(page.getId());
+		}
+		return;
+	}
+
 	public render(): JSX.Element {
 		let nextPage: PageRef | undefined;
 		let previousPage: PageRef | undefined;
 
-		const store = Store.getInstance();
-		const page = store.getCurrentPage();
-		const pages: PageRef[] = page ? page.getProject().getPages() : [];
-		const currentIndex = page ? pages.indexOf(page.getPageRef()) : 0;
+		const currentPage = this.getCurrentPage();
+		const pages: PageRef[] = currentPage ? currentPage.getProject().getPages() : [];
+		const currentIndex = currentPage ? pages.indexOf(currentPage.getPageRef()) : 0;
 
 		if (currentIndex > 0) {
 			previousPage = pages[currentIndex - 1];
@@ -30,13 +43,13 @@ export class ChromeContainer extends React.Component {
 			<Chrome>
 				<OverviewSwitchContainer />
 				<ViewSwitch
-					fontSize={Size.M}
+					fontSize={FontSize.M}
 					justify="center"
-					leftVisible={!!previousPage}
-					rightVisible={!!nextPage}
-					onLeftClick={() => (previousPage ? store.openPage(previousPage.getId()) : undefined)}
-					onRightClick={() => (nextPage ? store.openPage(nextPage.getId()) : undefined)}
-					title={page ? page.getName() : ''}
+					leftVisible={Boolean(previousPage)}
+					rightVisible={Boolean(nextPage)}
+					onLeftClick={() => this.openPage(previousPage)}
+					onRightClick={() => this.openPage(nextPage)}
+					title={currentPage ? currentPage.getName() : ''}
 				/>
 				{this.props.children}
 			</Chrome>

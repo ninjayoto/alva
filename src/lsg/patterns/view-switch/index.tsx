@@ -5,12 +5,14 @@ import * as React from 'react';
 import { getSpace, Size as SpaceSize } from '../space';
 import styled from 'styled-components';
 
+export type JustifyType = 'start' | 'center' | 'end' | 'stretch';
+
 export interface ViewSwitchProps {
 	fontSize?: Size;
-	justify?: 'start' | 'center' | 'end' | 'stretch';
+	justify?: JustifyType;
 	leftVisible: boolean;
-	onLeftClick: React.MouseEventHandler<SVGElement>;
-	onRightClick: React.MouseEventHandler<SVGElement>;
+	onLeftClick?: React.MouseEventHandler<SVGElement>;
+	onRightClick?: React.MouseEventHandler<SVGElement>;
 	rightVisible: boolean;
 	title: string;
 }
@@ -25,7 +27,7 @@ interface StyledViewSwitchProps {
 }
 
 const StyledViewSwitch = styled.div`
-	display: inline-flex;
+	display: flex;
 	align-self: center;
 	justify-self: ${(props: StyledViewSwitchProps) => props.justify || 'start'};
 	font-size: ${(props: StyledViewSwitchProps) =>
@@ -73,7 +75,7 @@ export const ViewSwitch: React.StatelessComponent<ViewSwitchProps> = (props): JS
 			color={colors.grey60}
 			handleClick={props.onRightClick}
 			size={IconSize.XS}
-			name={IconName.ArrowFill}
+			name={IconName.ArrowFillRight}
 			visible={props.rightVisible}
 		/>
 	</StyledViewSwitch>

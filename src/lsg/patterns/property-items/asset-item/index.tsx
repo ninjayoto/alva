@@ -11,7 +11,6 @@ export interface AssetItemProps {
 	handleInputChange?: React.ChangeEventHandler<HTMLInputElement>;
 	imageSrc?: string;
 	inputValue?: string;
-	label: string;
 }
 
 const StyledAssetItem = styled.div`
@@ -23,14 +22,6 @@ const StyledPreview = styled.div`
 	flex-direction: row;
 	align-items: center;
 	margin-bottom: ${getSpace(Size.XS)}px;
-`;
-
-const StyledLabel = styled.span`
-	display: block;
-	margin-bottom: ${getSpace(Size.XS)}px;
-	font-size: 12px;
-	font-family: ${fonts().NORMAL_FONT};
-	color: ${colors.grey36.toString()};
 `;
 
 const StyledInput = styled.input`
@@ -90,7 +81,6 @@ const StyledButton = styled.button`
 export const AssetItem: React.StatelessComponent<AssetItemProps> = props => (
 	<StyledAssetItem className={props.className}>
 		<label>
-			<StyledLabel>{props.label}</StyledLabel>
 			<StyledPreview>
 				<StyledImageBox>
 					<StyledImage src={props.imageSrc} />

@@ -1,5 +1,4 @@
 import { colors } from '../../colors';
-import { fonts } from '../../fonts';
 import * as React from 'react';
 import { getSpace, Size } from '../../space';
 import styled from 'styled-components';
@@ -8,7 +7,6 @@ export interface BooleanItemProps {
 	checked?: boolean;
 	className?: string;
 	handleChange?: React.ChangeEventHandler<HTMLElement>;
-	label: string;
 }
 
 interface IndicatorProps {
@@ -65,25 +63,16 @@ const StyledIndicator = styled.span`
 			: ''};
 `;
 
-const StyledLabel = styled.span`
-	display: block;
-	font-size: 12px;
-	font-family: ${fonts().NORMAL_FONT};
-	color: ${colors.grey36.toString()};
-	margin-bottom: ${getSpace(Size.XS)}px;
-`;
-
 const StyledInput = styled.input`
 	display: none;
 `;
 
 export const BooleanItem: React.StatelessComponent<BooleanItemProps> = props => {
-	const { className, label, children, checked, handleChange } = props;
+	const { className, children, checked, handleChange } = props;
 
 	return (
 		<StyledBooleanItem className={className}>
 			<StyledLabelWrapper>
-				<StyledLabel>{label}</StyledLabel>
 				<StyledInput onChange={handleChange} type="checkbox" />
 				<StyledIndicator checked={checked} />
 			</StyledLabelWrapper>

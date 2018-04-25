@@ -17,7 +17,7 @@ export interface PropertyItemProps {
 	selectedPropertyType: string;
 }
 
-const StyledPropertyItem = styled.div`
+const StyledPropertyItemHeader = styled.div`
 	width: 100%;
 	display: flex;
 	flex-direction: row;
@@ -50,28 +50,38 @@ const StyledSelect = styled.select`
 	}
 `;
 
-const StyledLabel = styled.span`
-	display: block;
-`;
-
 export const PropertyItem: React.StatelessComponent<PropertyItemProps> = props => {
-	const { className, propertyName, propertyTypes, selectedPropertyType, handleChange } = props;
+	const {
+		className,
+		propertyName,
+		propertyTypes,
+		selectedPropertyType,
+		handleChange,
+		children
+	} = props;
 
 	return (
-		<StyledPropertyItem className={className}>
-			<StyledLabel>{propertyName}</StyledLabel>
-			<StyledSelect
-				className={className}
-				onChange={handleChange}
-				value={selectedPropertyType ? selectedPropertyType : ''}
-			>
-				{propertyTypes.map(propertyType => (
-					<option key={propertyType.id} value={propertyType.id}>
-						{propertyType.name}
-					</option>
-				))};
-			</StyledSelect>
-		</StyledPropertyItem>
+		<div>
+			<StyledPropertyItemHeader className={className}>
+				<div>{propertyName}</div>
+				{propertyTypes.length ? (
+					<StyledSelect
+						className={className}
+						onChange={handleChange}
+						value={selectedPropertyType ? selectedPropertyType : ''}
+					>
+						{propertyTypes.map(propertyType => (
+							<option key={propertyType.id} value={propertyType.id}>
+								{propertyType.name}
+							</option>
+						))};
+					</StyledSelect>
+				) : (
+					undefined
+				)}
+			</StyledPropertyItemHeader>
+			{children}
+		</div>
 	);
 };
 

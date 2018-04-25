@@ -12,7 +12,6 @@ export interface Values {
 export interface EnumItemProps {
 	className?: string;
 	handleChange?: React.ChangeEventHandler<HTMLSelectElement>;
-	label: string;
 	required?: boolean;
 	selectedValue?: string;
 	values: Values[];
@@ -48,20 +47,11 @@ const StyledSelect = styled.select`
 	}
 `;
 
-const StyledLabel = styled.span`
-	display: block;
-	margin-bottom: ${getSpace(Size.XS)}px;
-	font-size: 12px;
-	font-family: ${fonts().NORMAL_FONT};
-	color: ${colors.grey36.toString()};
-`;
-
 export const EnumItem: React.StatelessComponent<EnumItemProps> = props => {
-	const { className, values, selectedValue, handleChange, label, required } = props;
+	const { className, values, selectedValue, handleChange, required } = props;
 
 	return (
 		<StyledEnumItem className={className}>
-			<StyledLabel>{label}</StyledLabel>
 			<StyledSelect
 				className={className}
 				onChange={handleChange}

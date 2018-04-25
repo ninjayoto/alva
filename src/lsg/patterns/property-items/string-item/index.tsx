@@ -8,20 +8,11 @@ export interface StringItemProps {
 	className?: string;
 	handleBlur?: React.FocusEventHandler<HTMLInputElement>;
 	handleChange?: React.ChangeEventHandler<HTMLInputElement>;
-	label: string;
 	value?: string;
 }
 
 const StyledStringItem = styled.div`
 	width: 100%;
-`;
-
-const StyledLabel = styled.span`
-	display: block;
-	margin-bottom: ${getSpace(Size.XS)}px;
-	font-size: 12px;
-	font-family: ${fonts().NORMAL_FONT};
-	color: ${colors.grey36.toString()};
 `;
 
 const StyledInput = styled.input`
@@ -56,12 +47,11 @@ const StyledInput = styled.input`
 `;
 
 export const StringItem: React.StatelessComponent<StringItemProps> = props => {
-	const { className, handleChange, handleBlur, label, value } = props;
+	const { className, handleChange, handleBlur, value } = props;
 
 	return (
 		<StyledStringItem className={className}>
 			<label>
-				<StyledLabel>{label}</StyledLabel>
 				<StyledInput
 					onChange={handleChange}
 					onBlur={handleBlur}

@@ -88,7 +88,7 @@ export class PngExporter extends Exporter {
 							resolve(pngBuffer);
 
 							setTimeout(() => {
-								// document.body.removeChild(webview);
+								document.body.removeChild(webview);
 							});
 						}
 					);

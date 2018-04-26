@@ -27,10 +27,8 @@ interface Page {
 }
 
 class PreviewStore {
-	@MobX.observable public components: string[] = [];
 	@MobX.observable public elementId: string = '';
 	@MobX.observable public page: Page | null = null;
-	@MobX.observable public tasks: string[] = [];
 }
 
 function main(): void {
@@ -61,7 +59,6 @@ function main(): void {
 				break;
 			case 'state':
 				store.page = payload.page;
-				scheduleScript(store);
 				break;
 			case 'element-change': {
 				store.elementId = payload;
@@ -136,9 +133,8 @@ interface InjectedPreviewApplicationProps {
 class PreviewApplication extends React.Component {
 	public render(): JSX.Element | null {
 		const props = this.props as InjectedPreviewApplicationProps;
-		const tasks = props.store.tasks;
 
-		if (!props.store.page || tasks.length > 0) {
+		if (!props.store.page) {
 			return null;
 		}
 
@@ -255,13 +251,6 @@ class PreviewHighlight extends React.Component {
 	}
 }
 
-interface TreeNode {
-	contents: {
-		[slot: string]: PreviewComponentProps[];
-	};
-	pattern: string;
-}
-
 interface PassedComponentProps {
 	// tslint:disable-next-line:no-any
 	[propName: string]: any;
@@ -273,7 +262,8 @@ interface InputComponentProps extends PassedComponentProps {
 }
 
 function getComponent(props: InputComponentProps): string | React.SFC<PassedComponentProps> | null {
-	const component = props.pattern ? window[safePattern(props.pattern)] : null;
+	// tslint:disable-next-line:no-any
+	const component = props.pattern ? (window as any).components[safePattern(props.pattern)] : null;
 
 	if (!component) {
 		return null;
@@ -283,44 +273,6 @@ function getComponent(props: InputComponentProps): string | React.SFC<PassedComp
 	Component.displayName = upperFirst(camelCase(props.name));
 
 	return Component;
-}
-
-function deriveComponents(tree: TreeNode, init: Set<string> = new Set()): Set<string> {
-	if (typeof tree.pattern === 'string' && !tree.pattern.startsWith('synthetic:')) {
-		init.add(tree.pattern);
-	}
-
-	return Object.keys(tree.contents || {})
-		.reduce((acc, key) => [...acc, ...tree.contents[key]], [])
-		.reduce((acc, node) => {
-			deriveComponents(node, acc);
-			return acc;
-		}, init);
-}
-
-function scheduleScript(store: PreviewStore): void {
-	const page = store.page;
-
-	if (page) {
-		const componentRequests = [...deriveComponents(page.root)];
-		const components = store.components;
-		const tasks = store.tasks;
-
-		componentRequests
-			.filter(component => !components.includes(component) && !tasks.includes(component))
-			.forEach(component => {
-				const script = document.createElement('script');
-				script.src = `/scripts/${safePattern(component)}.js`;
-
-				script.onload = () => {
-					tasks.splice(tasks.indexOf(component), 1);
-					components.push(component);
-				};
-
-				tasks.push(component);
-				document.body.appendChild(script);
-			});
-	}
 }
 
 main();

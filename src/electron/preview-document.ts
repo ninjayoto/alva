@@ -82,6 +82,7 @@ export const previewDocument = `<!doctype html>
 		</div>
 	</div>
 	<script src="/scripts/vendor.js"></script>
+	<script src="/scripts/components.js"></script>
 	<script src="/scripts/preview.js"></script>
 </body>
 </html>

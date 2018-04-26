@@ -3,6 +3,7 @@ import * as express from 'express';
 import * as Http from 'http';
 import * as Path from 'path';
 import { previewDocument } from './preview-document';
+import * as QueryString from 'query-string';
 import { safePattern } from './safe-pattern';
 import { Store } from '../store/store';
 import { Styleguide } from '../store/styleguide/styleguide';
@@ -35,6 +36,7 @@ interface State {
 type Queue = any[];
 
 const PREVIEW_PATH = require.resolve('./preview');
+const LOADER_PATH = require.resolve('./loader');
 
 export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 	const store = Store.getInstance();
@@ -240,7 +242,10 @@ async function setup(update: any): Promise<any> {
 		context,
 		entry: {
 			preview: PREVIEW_PATH,
-			...components
+			components: `${LOADER_PATH}?${QueryString.stringify({
+				cwd: context,
+				components: JSON.stringify(components)
+			})}!`
 		},
 		output: {
 			filename: '[name].js',

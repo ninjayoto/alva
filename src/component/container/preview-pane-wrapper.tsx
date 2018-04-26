@@ -5,7 +5,7 @@ export interface ElementWrapperState {
 	direction: number;
 	isResizing: boolean;
 	maxWidth: number;
-	mousePosition: number | null;
+	mousePosition?: number;
 	width: number;
 }
 
@@ -15,7 +15,7 @@ export class PreviewPaneWrapper extends React.Component<PreviewPaneProps, Elemen
 		direction: 1,
 		width: 0,
 		maxWidth: 0,
-		mousePosition: null
+		mousePosition: undefined
 	};
 
 	private handleMouseDownLeft(e: React.MouseEvent<HTMLElement>): void {
@@ -44,25 +44,27 @@ export class PreviewPaneWrapper extends React.Component<PreviewPaneProps, Elemen
 		if (e.buttons % 2 === 0) {
 			this.setState({
 				isResizing: false,
-				mousePosition: null
+				mousePosition: undefined
 			});
 			return;
 		}
 
 		e.preventDefault();
 
-		const newWidth = width - (mousePosition - e.pageX) * 2 * direction;
-		this.setState({
-			// only set new width if it is not smaller than 300 and also not bigger than the maxWidth
-			width: newWidth >= maxWidth ? maxWidth : newWidth >= 300 ? newWidth : 300,
-			mousePosition: e.pageX
-		});
+		if (typeof mousePosition === 'number' && !Number.isNaN(mousePosition)) {
+			const newWidth = width - (mousePosition - e.pageX) * 2 * direction;
+			this.setState({
+				// only set new width if it is not smaller than 300 and also not bigger than the maxWidth
+				width: newWidth >= maxWidth ? maxWidth : newWidth >= 300 ? newWidth : 300,
+				mousePosition: e.pageX
+			});
+		}
 	}
 
 	private handleMouseUp(): void {
 		this.setState({
 			isResizing: false,
-			mousePosition: null
+			mousePosition: undefined
 		});
 	}
 

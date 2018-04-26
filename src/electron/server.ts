@@ -2,10 +2,15 @@ import { EventEmitter } from 'events';
 import * as express from 'express';
 import * as Http from 'http';
 import { previewDocument } from './preview-document';
+import { safePattern } from './safe-pattern';
 import { Store } from '../store/store';
+import { Styleguide } from '../store/styleguide/styleguide';
+import * as uuid from 'uuid';
 import * as webpack from 'webpack';
-import * as webpackDevMiddleware from 'webpack-dev-middleware';
 import { OPEN, Server as WebsocketServer } from 'ws';
+
+// memory-fs typings on @types are faulty
+const MemoryFs = require('memory-fs');
 
 export interface ServerOptions {
 	port: number;
@@ -14,6 +19,19 @@ export interface ServerOptions {
 interface StyleguidePattern {
 	[key: string]: string;
 }
+
+interface State {
+	id: string;
+	payload: {
+		elementId?: string;
+		// tslint:disable-next-line:no-any
+		page?: any;
+	};
+	type: 'state';
+}
+
+// tslint:disable-next-line:no-any
+type Queue = any[];
 
 const PREVIEW_PATH = require.resolve('./preview');
 
@@ -27,7 +45,16 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 	const server = Http.createServer(app);
 	const wss = new WebsocketServer({ server });
 
-	let startMessage;
+	const state: State = {
+		id: uuid.v4(),
+		type: 'state',
+		payload: {}
+	};
+
+	// tslint:disable-next-line:no-any
+	const compilation: any = {
+		path: ''
+	};
 
 	// Prevent client errors (frequently caused by Chrome disconnecting on reload)
 	// from bubbling up and making the server fail, ref: https://github.com/websockets/ws/issues/1256
@@ -37,81 +64,96 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 		});
 
 		ws.on('message', message => emitter.emit('client-message', message));
-
-		if (startMessage) {
-			ws.send(JSON.stringify(startMessage));
-		}
+		ws.send(JSON.stringify(state));
 	});
+
+	app.get('/preview.html', (req, res) => {
+		res.type('html');
+		res.send(previewDocument);
+	});
+
+	app.use('/scripts', (req, res, next) => {
+		const [current] = compilation.queue;
+
+		if (!current) {
+			return next();
+		}
+
+		// tslint:disable-next-line:no-any
+		const onReady = (fs: any): void => {
+			try {
+				res.type('js');
+				res.send(fs.readFileSync(req.url));
+			} catch (err) {
+				if (err.code === 'ENOENT') {
+					res.sendStatus(404);
+					return;
+				}
+				res.sendStatus(500);
+			}
+		};
+
+		if (current.type === 'start') {
+			compilation.compiler.hooks.done.tap('alva', stats => {
+				if (stats.hasErrors()) {
+					return res.status(500).send(stats.toJson('errors-only'));
+				}
+				return onReady(compilation.compiler.outputFileSystem);
+			});
+			return;
+		}
+
+		return onReady(compilation.compiler.outputFileSystem);
+	});
+
+	const send = (message: string): void => {
+		wss.clients.forEach(client => {
+			if (client.readyState === OPEN) {
+				client.send(message);
+			}
+		});
+	};
 
 	// tslint:disable-next-line:no-any
 	emitter.on('message', async (message: any) => {
-		if (message.type === 'project-start') {
-			app.get('/preview.html', (req, res) => {
-				res.type('html');
-				res.send(previewDocument);
-			});
-
-			startMessage = message;
-			const styleguide = store.getStyleguide();
-
-			if (styleguide) {
-				const init: StyleguidePattern = {};
-
-				const components = styleguide.getPatterns().reduce((acc, pattern) => {
-					const patternPath = pattern.getImplementationPath();
-
-					if (!patternPath) {
-						return acc;
-					}
-
-					acc[
-						encodeURIComponent(
-							pattern
-								.getId()
-								.split('/')
-								.join('-')
-						)
-					] = patternPath;
-					return acc;
-				}, init);
-
-				const compiler = webpack({
-					mode: 'development',
-					entry: {
-						preview: PREVIEW_PATH,
-						...components
-					},
-					output: {
-						filename: '[name].js',
-						library: '[name]',
-						libraryTarget: 'global',
-						path: '/'
-					},
-					optimization: {
-						splitChunks: {
-							cacheGroups: {
-								vendor: {
-									chunks: 'initial',
-									name: 'vendor',
-									test: /node_modules/,
-									priority: 10,
-									enforce: true
-								}
-							}
-						}
-					}
-					// tslint:disable-next-line:no-any
-				} as any);
-
-				app.use('/scripts', webpackDevMiddleware(compiler));
+		switch (message.type) {
+			case 'styleguide-change': {
+				const { payload } = message;
+				if (compilation.path !== payload.styleguidePath) {
+					send(
+						JSON.stringify({
+							type: 'reload',
+							id: uuid.v4(),
+							payload: {}
+						})
+					);
+				}
+				state.id = uuid.v4();
+				state.payload = {};
+				const next = await setup({
+					analyzerName: payload.analyzerName,
+					styleguidePath: payload.styleguidePath,
+					patternsPath: payload.patternsPath
+				});
+				compilation.path = payload.styleguidePath;
+				compilation.compiler = next.compiler;
+				compilation.queue = next.queue;
+				break;
+			}
+			case 'page-change': {
+				state.payload.page = message.payload;
+				send(JSON.stringify(state));
+				break;
+			}
+			case 'element-change': {
+				state.payload.elementId = message.payload;
+				send(JSON.stringify(message));
+				break;
+			}
+			default: {
+				console.warn(`Unknown message type: ${message.type}`);
 			}
 		}
-
-		wss.clients.forEach(client => {
-			if (client.readyState === OPEN) {
-				client.send(JSON.stringify(message));
-			}
-		});
 	});
 
 	await startServer({
@@ -133,4 +175,77 @@ function startServer(options: ServerStartOptions): Promise<void> {
 		options.server.once('error', reject);
 		options.server.listen(options.port, resolve);
 	});
+}
+
+// tslint:disable-next-line:no-any
+async function setup(update: any): Promise<any> {
+	const queue: Queue = [];
+	const init: StyleguidePattern = {};
+
+	const styleguide = new Styleguide(
+		update.styleguidePath,
+		update.patternsPath,
+		update.analyzerName
+	);
+
+	const components = styleguide.getPatterns().reduce((acc, pattern) => {
+		const patternPath = pattern.getImplementationPath();
+
+		if (!patternPath) {
+			return acc;
+		}
+
+		acc[safePattern(pattern.getId())] = patternPath;
+		return acc;
+	}, init);
+
+	const compiler = webpack({
+		mode: 'development',
+		context: styleguide.getPath(),
+		entry: {
+			preview: PREVIEW_PATH,
+			...components
+		},
+		output: {
+			filename: '[name].js',
+			library: '[name]',
+			libraryTarget: 'global',
+			path: '/'
+		},
+		optimization: {
+			splitChunks: {
+				cacheGroups: {
+					vendor: {
+						chunks: 'initial',
+						name: 'vendor',
+						test: /node_modules/,
+						priority: 10,
+						enforce: true
+					}
+				}
+			}
+		}
+		// tslint:disable-next-line:no-any
+	} as any);
+
+	compiler.outputFileSystem = new MemoryFs();
+
+	compiler.hooks.compile.tap('alva', () => {
+		queue.unshift({ type: 'start' });
+	});
+
+	compiler.hooks.done.tap('alva', stats => {
+		if (stats.hasErrors()) {
+			queue.unshift({ type: 'error', payload: stats.toJson('errors-only') });
+		}
+		queue.unshift({ type: 'done' });
+	});
+
+	// tslint:disable-next-line:no-empty
+	compiler.watch({}, (err, stats) => {});
+
+	return {
+		compiler,
+		queue
+	};
 }

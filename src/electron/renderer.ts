@@ -1,7 +1,7 @@
 import { App } from '../component/container/app';
 import { ipcRenderer, webFrame } from 'electron';
 import * as MobX from 'mobx';
-import { Page } from '../store/page/page';
+// import { Page } from '../store/page/page';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Store } from '../store/store';
@@ -24,24 +24,23 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 
 			store.setPort(message.payload);
 
-			{
-				const project = store.getCurrentProject();
-				const page = store.getCurrentPage();
-				const selectedElement = store.getSelectedElement();
+			MobX.autorun(() => {
+				const styleguide = store.getStyleguide();
 
-				ipcRenderer.send('message', {
-					type: 'project-start',
-					payload: {
-						projectId: project ? project.getId() : undefined,
-						pageId: page ? page.getId() : undefined,
-						page: page ? page.toJsonObject({ forRendering: true }) : undefined,
-						selectedElementId: selectedElement ? selectedElement.getId() : undefined
-					}
-				});
-			}
+				if (styleguide) {
+					ipcRenderer.send('message', {
+						type: 'styleguide-change',
+						payload: {
+							analyzerName: store.getAnalyzerName(),
+							styleguidePath: styleguide.getPath(),
+							patternsPath: styleguide.getPatternsPath()
+						}
+					});
+				}
+			});
 
 			MobX.autorun(() => {
-				const page: Page | undefined = store.getCurrentPage();
+				const page = store.getCurrentPage();
 
 				if (page) {
 					ipcRenderer.send('message', {
@@ -59,10 +58,14 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 				});
 			});
 
-			ReactDom.render(
-				React.createElement(App, { port: message.payload }),
-				document.getElementById('app')
-			);
+			try {
+				ReactDom.render(
+					React.createElement(App, { port: message.payload }),
+					document.getElementById('app')
+				);
+			} catch (err) {
+				console.error(err);
+			}
 		}
 	}
 });

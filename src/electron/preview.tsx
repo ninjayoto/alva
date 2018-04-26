@@ -5,6 +5,7 @@ import * as MobX from 'mobx';
 import * as MobXReact from 'mobx-react';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
+import { safePattern } from './safe-pattern';
 import * as SmoothscrollPolyfill from 'smoothscroll-polyfill';
 
 interface PageElement {
@@ -29,7 +30,6 @@ class PreviewStore {
 	@MobX.observable public components: string[] = [];
 	@MobX.observable public elementId: string = '';
 	@MobX.observable public page: Page | null = null;
-	@MobX.observable public projectId: string = '';
 	@MobX.observable public tasks: string[] = [];
 }
 
@@ -55,17 +55,13 @@ function main(): void {
 		const { type, id, payload } = message;
 
 		// TODO: Do type refinements on message here
-		console.log(message);
-
 		switch (type) {
-			case 'project-start':
-				store.projectId = payload.projectId;
-				store.page = payload.page;
-				store.elementId = payload.elementId;
-				scheduleScript(store);
+			case 'reload':
+				window.location.reload();
 				break;
-			case 'page-change':
-				store.page = payload;
+			case 'state':
+				store.page = payload.page;
+				scheduleScript(store);
 				break;
 			case 'element-change': {
 				store.elementId = payload;
@@ -287,10 +283,6 @@ function getComponent(props: InputComponentProps): string | React.SFC<PassedComp
 	Component.displayName = upperFirst(camelCase(props.name));
 
 	return Component;
-}
-
-function safePattern(id: string): string {
-	return encodeURIComponent(id.split('/').join('-'));
 }
 
 function deriveComponents(tree: TreeNode, init: Set<string> = new Set()): Set<string> {

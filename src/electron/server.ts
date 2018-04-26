@@ -76,7 +76,8 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 		const [current] = compilation.queue;
 
 		if (!current) {
-			return next();
+			next();
+			return;
 		}
 
 		// tslint:disable-next-line:no-any
@@ -96,14 +97,17 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 		if (current.type === 'start') {
 			compilation.compiler.hooks.done.tap('alva', stats => {
 				if (stats.hasErrors()) {
-					return res.status(500).send(stats.toJson('errors-only'));
+					res.status(500).send(stats.toJson('errors-only'));
+					return;
 				}
-				return onReady(compilation.compiler.outputFileSystem);
+				onReady(compilation.compiler.outputFileSystem);
+				return;
 			});
 			return;
 		}
 
-		return onReady(compilation.compiler.outputFileSystem);
+		onReady(compilation.compiler.outputFileSystem);
+		return;
 	});
 
 	const send = (message: string): void => {

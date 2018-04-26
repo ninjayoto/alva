@@ -102,7 +102,6 @@ export class PngExporter extends Exporter {
 				shoot();
 			});
 
-			// tslint:disable-next-line:no-any
 			ipcRenderer.on('message', receive);
 
 			webview.addEventListener('dom-ready', () => {

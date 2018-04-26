@@ -10,6 +10,9 @@ import { Store } from '../store/store';
 webFrame.setVisualZoomLevelLimits(1, 1);
 webFrame.setLayoutZoomLevelLimits(0, 0);
 
+const store = Store.getInstance();
+store.openFromPreferences();
+
 ipcRenderer.send('message', { type: 'app-loaded' });
 
 // tslint:disable-next-line:no-any
@@ -19,56 +22,46 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 	}
 	switch (message.type) {
 		case 'start-app': {
-			const store = Store.getInstance();
-			store.openFromPreferences();
-
 			store.setPort(message.payload);
-
-			MobX.autorun(() => {
-				const styleguide = store.getStyleguide();
-
-				if (styleguide) {
-					ipcRenderer.send('message', {
-						type: 'styleguide-change',
-						payload: {
-							analyzerName: store.getAnalyzerName(),
-							styleguidePath: styleguide.getPath(),
-							patternsPath: styleguide.getPatternsPath()
-						}
-					});
-				}
-			});
-
-			MobX.autorun(() => {
-				const page = store.getCurrentPage();
-
-				if (page) {
-					ipcRenderer.send('message', {
-						type: 'page-change',
-						payload: page.toJsonObject({ forRendering: true })
-					});
-				}
-			});
-
-			MobX.autorun(() => {
-				const selectedElement = store.getSelectedElement();
-				ipcRenderer.send('message', {
-					type: 'element-change',
-					payload: selectedElement ? selectedElement.getId() : undefined
-				});
-			});
-
-			try {
-				ReactDom.render(
-					React.createElement(App, { port: message.payload }),
-					document.getElementById('app')
-				);
-			} catch (err) {
-				console.error(err);
-			}
 		}
 	}
 });
+
+MobX.autorun(() => {
+	const styleguide = store.getStyleguide();
+
+	if (styleguide) {
+		ipcRenderer.send('message', {
+			type: 'styleguide-change',
+			payload: {
+				analyzerName: store.getAnalyzerName(),
+				styleguidePath: styleguide.getPath(),
+				patternsPath: styleguide.getPatternsPath()
+			}
+		});
+	}
+});
+
+MobX.autorun(() => {
+	const page = store.getCurrentPage();
+
+	if (page) {
+		ipcRenderer.send('message', {
+			type: 'page-change',
+			payload: page.toJsonObject({ forRendering: true })
+		});
+	}
+});
+
+MobX.autorun(() => {
+	const selectedElement = store.getSelectedElement();
+	ipcRenderer.send('message', {
+		type: 'element-change',
+		payload: selectedElement ? selectedElement.getId() : undefined
+	});
+});
+
+ReactDom.render(React.createElement(App), document.getElementById('app'));
 
 // Disable drag and drop from outside the application
 document.addEventListener(

@@ -30,12 +30,8 @@ globalStyles();
 
 const store = Store.getInstance();
 
-export interface AppProps {
-	port: number;
-}
-
 @observer
-export class App extends React.Component<AppProps> {
+export class App extends React.Component {
 	private static PATTERN_LIST_ID = 'patternlist';
 	private static PROPERTIES_LIST_ID = 'propertieslist';
 
@@ -43,7 +39,7 @@ export class App extends React.Component<AppProps> {
 	private ctrlDown: boolean = false;
 	private shiftDown: boolean = false;
 
-	public constructor(props: AppProps) {
+	public constructor(props: {}) {
 		super(props);
 		this.handleTabNaviagtionClick = this.handleTabNaviagtionClick.bind(this);
 		this.handleMainWindowClick = this.handleMainWindowClick.bind(this);
@@ -159,7 +155,7 @@ export class App extends React.Component<AppProps> {
 						<PreviewPaneWrapper
 							key="center"
 							id="preview"
-							previewFrame={`http://localhost:${this.props.port}/preview.html`}
+							previewFrame={`http://localhost:${store.getPort()}/preview.html`}
 						/>,
 						<SideBar key="right" directionVertical hasPaddings>
 							<PropertyPane>

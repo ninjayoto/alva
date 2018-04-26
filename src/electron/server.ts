@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import * as express from 'express';
 import * as Http from 'http';
+import * as Path from 'path';
 import { previewDocument } from './preview-document';
 import { safePattern } from './safe-pattern';
 import { Store } from '../store/store';
@@ -53,7 +54,8 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 
 	// tslint:disable-next-line:no-any
 	const compilation: any = {
-		path: ''
+		path: '',
+		queue: []
 	};
 
 	// Prevent client errors (frequently caused by Chrome disconnecting on reload)
@@ -124,6 +126,10 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 			case 'styleguide-change': {
 				const { payload } = message;
 				if (compilation.path !== payload.styleguidePath) {
+					if (compilation.compiler) {
+						compilation.compiler.close();
+					}
+
 					send(
 						JSON.stringify({
 							type: 'reload',
@@ -131,17 +137,28 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 							payload: {}
 						})
 					);
+
+					state.id = uuid.v4();
+					state.payload = {};
+					const next = await setup({
+						analyzerName: payload.analyzerName,
+						styleguidePath: payload.styleguidePath,
+						patternsPath: payload.patternsPath
+					});
+					compilation.path = payload.styleguidePath;
+					compilation.compiler = next.compiler;
+					compilation.queue = next.queue;
+
+					next.compiler.hooks.watchRun.tap('alva', () => {
+						send(
+							JSON.stringify({
+								type: 'reload',
+								id: uuid.v4(),
+								payload: {}
+							})
+						);
+					});
 				}
-				state.id = uuid.v4();
-				state.payload = {};
-				const next = await setup({
-					analyzerName: payload.analyzerName,
-					styleguidePath: payload.styleguidePath,
-					patternsPath: payload.patternsPath
-				});
-				compilation.path = payload.styleguidePath;
-				compilation.compiler = next.compiler;
-				compilation.queue = next.queue;
 				break;
 			}
 			case 'page-change': {
@@ -154,6 +171,17 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 				send(JSON.stringify(message));
 				break;
 			}
+			case 'bundle-change':
+				send(
+					JSON.stringify({
+						type: 'reload',
+						id: uuid.v4(),
+						payload: {}
+					})
+				);
+				break;
+			case 'app-loaded':
+				break;
 			default: {
 				console.warn(`Unknown message type: ${message.type}`);
 			}
@@ -192,6 +220,8 @@ async function setup(update: any): Promise<any> {
 		update.analyzerName
 	);
 
+	const context = styleguide.getPath();
+
 	const components = styleguide.getPatterns().reduce((acc, pattern) => {
 		const patternPath = pattern.getImplementationPath();
 
@@ -199,13 +229,15 @@ async function setup(update: any): Promise<any> {
 			return acc;
 		}
 
-		acc[safePattern(pattern.getId())] = patternPath;
+		acc[safePattern(pattern.getId())] = `./${Path.relative(context, patternPath)
+			.split(Path.sep)
+			.join('/')}`;
 		return acc;
 	}, init);
 
 	const compiler = webpack({
 		mode: 'development',
-		context: styleguide.getPath(),
+		context,
 		entry: {
 			preview: PREVIEW_PATH,
 			...components

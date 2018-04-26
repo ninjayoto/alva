@@ -34,7 +34,7 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 					payload: {
 						projectId: project ? project.getId() : undefined,
 						pageId: page ? page.getId() : undefined,
-						page: page ? page.toJsonObject() : undefined,
+						page: page ? page.toJsonObject({ forRendering: true }) : undefined,
 						selectedElementId: selectedElement ? selectedElement.getId() : undefined
 					}
 				});
@@ -46,7 +46,7 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 				if (page) {
 					ipcRenderer.send('message', {
 						type: 'page-change',
-						payload: page.toJsonObject()
+						payload: page.toJsonObject({ forRendering: true })
 					});
 				}
 			});

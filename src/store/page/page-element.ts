@@ -369,9 +369,7 @@ export class PageElement {
 	 * @return The JSON value.
 	 */
 	protected propertyToJsonValue(value: PropertyValue): JsonValue {
-		if (value instanceof PageElement) {
-			return value.toJsonObject();
-		} else if (value instanceof Object) {
+		if (value instanceof Object) {
 			const jsonObject: JsonObject = {};
 			Object.keys(value).forEach((propertyId: string) => {
 				// tslint:disable-next-line:no-any
@@ -502,9 +500,11 @@ export class PageElement {
 
 	/**
 	 * Serializes the page element into a JSON object for persistence.
+	 * @param forRendering Whether all property values should be converted using
+	 * Property.convertToRender (for the preview app instead of file persistence).
 	 * @return The JSON object to be persisted.
 	 */
-	public toJsonObject(): JsonObject {
+	public toJsonObject(props?: { forRendering?: boolean }): JsonObject {
 		const json: JsonObject = {
 			_type: 'pattern',
 			uuid: this.id,
@@ -517,14 +517,22 @@ export class PageElement {
 			(json.contents as JsonObject)[slotId] = slotContents.map(
 				(element: PageElement) =>
 					// tslint:disable-next-line:no-any
-					element.toJsonObject ? element.toJsonObject() : (element as any)
+					element.toJsonObject ? element.toJsonObject(props) : (element as any)
 			);
 		});
 
 		json.properties = {};
 		this.propertyValues.forEach((value: PropertyValue, key: string) => {
-			(json.properties as JsonObject)[key] =
-				value !== null && value !== undefined ? this.propertyToJsonValue(value) : value;
+			if (props && props.forRendering) {
+				const pattern: Pattern | undefined = this.getPattern();
+				const property: Property | undefined = pattern ? pattern.getProperty(key) : undefined;
+				if (property) {
+					value = property.convertToRender(value);
+				}
+			}
+
+			const jsonValue = this.propertyToJsonValue(value);
+			(json.properties as JsonObject)[key] = jsonValue;
 		});
 
 		return json;

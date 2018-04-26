@@ -80,7 +80,7 @@ export class PdfExporter extends Exporter {
 							resolve({ result: this.contents });
 
 							setTimeout(() => {
-								// document.body.removeChild(webview);
+								document.body.removeChild(webview);
 							});
 						}
 					);

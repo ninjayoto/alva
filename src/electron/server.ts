@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import * as express from 'express';
 import * as Http from 'http';
-import * as Path from 'path';
 import { previewDocument } from './preview-document';
 import { Store } from '../store/store';
 import * as webpack from 'webpack';
@@ -65,15 +64,14 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 						return acc;
 					}
 
-					const relPath = `./${Path.posix.relative(process.cwd(), patternPath)}`;
 					acc[
 						encodeURIComponent(
 							pattern
 								.getId()
-								.split(Path.sep)
+								.split('/')
 								.join('-')
 						)
-					] = relPath;
+					] = patternPath;
 					return acc;
 				}, init);
 

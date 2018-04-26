@@ -143,6 +143,7 @@
     "express": "4.16.3",
     "fs-extra": "5.0.0",
     "get-port": "3.2.0",
+    "js-string-escape": "1.0.1",
     "js-yaml": "3.11.0",
     "lodash": "4.17.5",
     "mime-types": "2.1.18",

@@ -2,6 +2,7 @@ import { checkForUpdates } from './auto-updater';
 import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import * as Fs from 'fs';
 import * as getPort from 'get-port';
+import * as stringEscape from 'js-string-escape';
 import * as Path from 'path';
 import { createServer } from './server';
 import * as Url from 'url';
@@ -12,7 +13,7 @@ const RENDERER_DOCUMENT = `<!doctype html>
 <html>
 <body>
 	<div id="app"></div>
-	<script>require('${APP_ENTRY}')</script>
+	<script>require('${stringEscape(APP_ENTRY)}')</script>
 </body>
 </html>`;
 

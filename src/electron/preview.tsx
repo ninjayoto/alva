@@ -3,7 +3,6 @@ import { HighlightArea } from './highlight-area';
 import { camelCase, omit, upperFirst } from 'lodash';
 import * as MobX from 'mobx';
 import * as MobXReact from 'mobx-react';
-import * as Path from 'path';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import * as SmoothscrollPolyfill from 'smoothscroll-polyfill';
@@ -291,7 +290,7 @@ function getComponent(props: InputComponentProps): string | React.SFC<PassedComp
 }
 
 function safePattern(id: string): string {
-	return encodeURIComponent(id.split(Path.sep).join('-'));
+	return encodeURIComponent(id.split('/').join('-'));
 }
 
 function deriveComponents(tree: TreeNode, init: Set<string> = new Set()): Set<string> {

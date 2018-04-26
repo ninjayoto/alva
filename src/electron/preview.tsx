@@ -117,7 +117,7 @@ function main(): void {
 		<MobXReact.Provider store={store} highlight={highlight}>
 			<PreviewApplication />
 		</MobXReact.Provider>,
-		document.getElementById('app')
+		document.getElementById('preview')
 	);
 }
 

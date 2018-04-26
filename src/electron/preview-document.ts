@@ -9,11 +9,11 @@ export const previewDocument = `<!doctype html>
 	</style>
 </head>
 <body>
-	<div id="app">
+	<div id="preview">
 		<style>
 			html,
 			body,
-			#app,
+			preview,
 			.outer {
 				min-height: 100vh;
 				min-width: 100vw;

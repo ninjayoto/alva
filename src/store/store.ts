@@ -343,8 +343,7 @@ export class Store {
 
 				const pagePath: string = PathUtils.join(pagesPath, persistedPath);
 
-				// tslint:disable-next-line:no-any
-				const data: any = Persister.loadYamlOrJson(pagePath);
+				const data = Persister.loadYamlOrJson(pagePath);
 				data.id = ref.id;
 				return data;
 			})

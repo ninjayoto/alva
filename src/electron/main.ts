@@ -44,8 +44,9 @@ async function createWindow(): Promise<void> {
 		})
 	);
 
-	// tslint:disable-next-line:await-promise
-	const port = await getPort({ port: 1879 });
+	// Cast getPort return type from PromiseLike<number> to Promise<number>
+	// to avoid async-promise tslint rule to produce errors here
+	const port = await (getPort({ port: 1879 }) as Promise<number>);
 	const server = await createServer({ port });
 
 	// tslint:disable-next-line:no-any

@@ -5,7 +5,7 @@ import Copy, { Size as CopySize } from '../../lsg/patterns/copy';
 import { remote } from 'electron';
 import { ElementList } from '../../component/container/element-list';
 import ElementPane from '../../lsg/patterns/panes/element-pane';
-import * as FileExtraUtils from 'fs-extra';
+import * as FsExtra from 'fs-extra';
 import globalStyles from '../../lsg/patterns/global-styles';
 import { Headline } from '../../lsg/patterns/headline';
 import { IconName, IconRegistry } from '../../lsg/patterns/icons';
@@ -14,11 +14,11 @@ import Link from '../../lsg/patterns/link';
 import { createMenu } from '../../electron/menu';
 import * as MobX from 'mobx';
 import { observer } from 'mobx-react';
-import * as PathUtils from 'path';
+import * as Path from 'path';
 import { PatternListContainer } from '../../component/container/pattern-list';
 import PatternsPane from '../../lsg/patterns/panes/patterns-pane';
 import { PreviewPaneWrapper } from '../../component/container/preview-pane-wrapper';
-import * as ProcessUtils from 'process';
+import * as Process from 'process';
 import { PropertyList } from './property-list';
 import PropertyPane from '../../lsg/patterns/panes/property-pane';
 import * as React from 'react';
@@ -68,10 +68,10 @@ export class App extends React.Component<AppProps> {
 	protected handleCreateNewSpaceClick(): void {
 		let appPath: string = remote.app.getAppPath().replace('.asar', '.asar.unpacked');
 		if (appPath.indexOf('node_modules') >= 0) {
-			appPath = ProcessUtils.cwd();
+			appPath = Process.cwd();
 		}
 
-		const designkitPath = PathUtils.join(appPath, 'build', 'designkit');
+		const designkitPath = Path.join(appPath, 'build', 'designkit');
 		remote.dialog.showOpenDialog(
 			{ properties: ['openDirectory', 'createDirectory'] },
 			filePaths => {
@@ -79,7 +79,7 @@ export class App extends React.Component<AppProps> {
 					return;
 				}
 
-				FileExtraUtils.copySync(designkitPath, PathUtils.join(filePaths[0], 'designkit'));
+				FsExtra.copySync(designkitPath, Path.join(filePaths[0], 'designkit'));
 				store.openStyleguide(`${filePaths[0]}/designkit`);
 				store.openFirstPage();
 			}

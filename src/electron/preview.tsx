@@ -254,8 +254,17 @@ interface TreeNode {
 	pattern: string;
 }
 
-// tslint:disable-next-line:no-any
-function getComponent(props: any): string | React.SFC<any> | null {
+interface PassedComponentProps {
+	// tslint:disable-next-line:no-any
+	[propName: string]: any;
+}
+
+interface InputComponentProps extends PassedComponentProps {
+	name: string;
+	pattern: string;
+}
+
+function getComponent(props: InputComponentProps): string | React.SFC<PassedComponentProps> | null {
 	const component = props.pattern ? window[safePattern(props.pattern)] : null;
 
 	if (!component) {

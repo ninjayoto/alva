@@ -317,16 +317,16 @@ function scheduleScript(store: PreviewStore): void {
 		componentRequests
 			.filter(component => !components.includes(component) && !tasks.includes(component))
 			.forEach(component => {
-				const el = document.createElement('script');
-				el.src = `/scripts/${safePattern(component)}.js`;
+				const script = document.createElement('script');
+				script.src = `/scripts/${safePattern(component)}.js`;
 
-				el.onload = () => {
+				script.onload = () => {
 					tasks.splice(tasks.indexOf(component), 1);
 					components.push(component);
 				};
 
 				tasks.push(component);
-				document.body.appendChild(el);
+				document.body.appendChild(script);
 			});
 	}
 }

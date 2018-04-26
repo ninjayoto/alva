@@ -8,13 +8,46 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import * as SmoothscrollPolyfill from 'smoothscroll-polyfill';
 
+interface PageElement {
+	contents: {
+		[propName: string]: PageElement[];
+	};
+	name: string;
+	pattern: string;
+	properties: {
+		// tslint:disable-next-line:no-any
+		[propName: string]: any;
+	};
+	uuid: string;
+}
+
+interface Page {
+	id: string;
+	root: PageElement;
+}
+
+class PreviewStore {
+	@MobX.observable public components: string[] = [];
+	@MobX.observable public elementId: string = '';
+	@MobX.observable public pageId: string = '';
+	@MobX.observable public pages: Page[] = [];
+	@MobX.observable public projectId: string = '';
+	@MobX.observable public tasks: string[] = [];
+
+	@MobX.action
+	// tslint:disable-next-line:no-any
+	public consume(payload: any): void {
+		this.projectId = payload.projectId;
+		this.pages = payload.pages;
+		this.pageId = payload.pageId;
+		this.elementId = payload.elementId;
+	}
+}
+
 function main(): void {
 	SmoothscrollPolyfill.polyfill();
 
-	const store = MobX.observable.map({});
-	store.set('components', []);
-	store.set('tasks', []);
-
+	const store = new PreviewStore();
 	const highlight = new HighlightArea();
 
 	const connection = new WebSocket(`ws://${window.location.host}`);
@@ -32,27 +65,26 @@ function main(): void {
 		const message = parse(e.data);
 		const { type, id, payload } = message;
 
+		// TODO: Do type refinements on message here
+
 		switch (type) {
 			case 'project-start':
-				store.set('projectId', payload.projectId);
-				store.set('pages', payload.pages);
-				store.set('pageId', payload.pageId);
-				store.set('elementId', payload.elementId);
+				store.consume(payload);
 				scheduleScript(store);
 				break;
 			case 'styleguide-change':
-				store.set('pages', payload);
+				store.pages = payload;
 				scheduleScript(store);
 				break;
 			case 'page-change':
-				store.set('pageId', payload);
+				store.pageId = payload;
 				break;
 			case 'tree-change':
-				store.set('pages', payload);
+				store.pages = payload;
 				scheduleScript(store);
 				break;
 			case 'element-change': {
-				store.set('elementId', payload);
+				store.elementId = payload;
 				break;
 			}
 			case 'content-request': {
@@ -116,8 +148,7 @@ function parse(data: string): any {
 
 interface InjectedPreviewApplicationProps {
 	highlight: HighlightArea;
-	// tslint:disable-next-line:no-any
-	store: any;
+	store: PreviewStore;
 }
 
 @MobXReact.inject('store', 'highlight')
@@ -125,10 +156,10 @@ interface InjectedPreviewApplicationProps {
 class PreviewApplication extends React.Component {
 	public render(): JSX.Element | null {
 		const props = this.props as InjectedPreviewApplicationProps;
-		const pages = props.store.get('pages') || [];
-		const pageId = props.store.get('pageId');
+		const pages = props.store.pages;
+		const pageId = props.store.pageId;
 		const page = pages.find(p => p.id === pageId);
-		const tasks = props.store.get('tasks');
+		const tasks = props.store.tasks;
 
 		if (!page || tasks.length > 0) {
 			return null;
@@ -164,8 +195,7 @@ interface PreviewComponentProps {
 
 interface InjectedPreviewComponentProps extends PreviewComponentProps {
 	highlight: HighlightArea;
-	// tslint:disable-next-line:no-any
-	store: any;
+	store: PreviewStore;
 }
 
 @MobXReact.inject('highlight', 'store')
@@ -174,12 +204,12 @@ class PreviewComponent extends React.Component<PreviewComponentProps> {
 	public componentWillUpdate(): void {
 		const props = this.props as InjectedPreviewComponentProps;
 
-		if (props.uuid === props.store.get('elementId')) {
+		if (props.uuid === props.store.elementId) {
 			const node = ReactDom.findDOMNode(this);
 			if (node) {
 				props.highlight.show(node as Element, props.uuid);
 				setTimeout(() => {
-					props.store.set('elementId', null);
+					props.store.elementId = '';
 				}, 500);
 			}
 		}
@@ -192,7 +222,8 @@ class PreviewComponent extends React.Component<PreviewComponentProps> {
 		const slots = omit(contents, ['default']);
 
 		// Access elementId in render method to trigger MobX subscription
-		props.store.get('elementId');
+		// tslint:disable-next-line:no-unused-expression
+		props.store.elementId;
 
 		const Component = getComponent(props);
 
@@ -294,21 +325,16 @@ function deriveComponents(tree: TreeNode, init: Set<string> = new Set()): Set<st
 		}, init);
 }
 
-// tslint:disable-next-line:no-any
-function scheduleScript(store: any): void {
-	const pages = store.get('pages') || [];
-	const pageId = store.get('pageId');
+function scheduleScript(store: PreviewStore): void {
+	const pages = store.pages || [];
+	const pageId = store.pageId;
 
-	// tslint:disable-next-line:no-any
-	const page = (pages as any[]).find(p => p.id === pageId);
+	const page = pages.find(p => p.id === pageId);
 
 	if (page) {
 		const componentRequests = [...deriveComponents(page.root)];
-
-		// tslint:disable-next-line:no-any
-		const components = store.get('components') as any[];
-		// tslint:disable-next-line:no-any
-		const tasks = store.get('tasks') as any[];
+		const components = store.components;
+		const tasks = store.tasks;
 
 		componentRequests
 			.filter(component => !components.includes(component) && !tasks.includes(component))

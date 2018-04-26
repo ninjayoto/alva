@@ -1,5 +1,4 @@
 import { Command } from './command';
-import { ipcRenderer } from 'electron';
 import { ElementCommand } from './element-command';
 import { Page } from '../page/page';
 import { PageElement } from '../page/page-element';
@@ -198,11 +197,6 @@ export class ElementLocationCommand extends ElementCommand {
 		this.element.setParent(this.parent, this.slotId, this.index);
 		this.memorizeElementIds();
 
-		ipcRenderer.send('message', {
-			type: 'tree-change',
-			payload: Store.getInstance().getCurrentPages()
-		});
-
 		return true;
 	}
 
@@ -239,11 +233,6 @@ export class ElementLocationCommand extends ElementCommand {
 
 		this.element.setParent(this.previousParent, this.previousSlotId, this.previousIndex);
 		this.memorizeElementIds();
-
-		ipcRenderer.send('message', {
-			type: 'tree-change',
-			payload: Store.getInstance().getCurrentPages()
-		});
 
 		return true;
 	}

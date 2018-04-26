@@ -1,8 +1,6 @@
 import { Command } from './command';
-import { ipcRenderer } from 'electron';
 import { ElementCommand } from './element-command';
 import { PageElement } from '../page/page-element';
-import { Store } from '../store';
 
 /**
  * A user operation to set the value of a page element property.
@@ -72,11 +70,6 @@ export class PropertyValueCommand extends ElementCommand {
 
 		this.element.setPropertyValue(this.propertyId, this.value, this.path);
 
-		ipcRenderer.send('message', {
-			type: 'tree-change',
-			payload: Store.getInstance().getCurrentPages()
-		});
-
 		return true;
 	}
 
@@ -127,11 +120,6 @@ export class PropertyValueCommand extends ElementCommand {
 		}
 
 		this.element.setPropertyValue(this.propertyId, this.previousValue, this.path);
-
-		ipcRenderer.send('message', {
-			type: 'tree-change',
-			payload: Store.getInstance().getCurrentPages()
-		});
 
 		return true;
 	}

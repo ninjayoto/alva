@@ -1,6 +1,6 @@
 import * as HtmlSketchApp from '@brainly/html-sketchapp';
 import { HighlightArea } from './highlight-area';
-import { camelCase, omit } from 'lodash';
+import { camelCase, omit, upperFirst } from 'lodash';
 import * as MobX from 'mobx';
 import * as MobXReact from 'mobx-react';
 import * as Path from 'path';
@@ -29,19 +29,9 @@ interface Page {
 class PreviewStore {
 	@MobX.observable public components: string[] = [];
 	@MobX.observable public elementId: string = '';
-	@MobX.observable public pageId: string = '';
-	@MobX.observable public pages: Page[] = [];
+	@MobX.observable public page: Page | null = null;
 	@MobX.observable public projectId: string = '';
 	@MobX.observable public tasks: string[] = [];
-
-	@MobX.action
-	// tslint:disable-next-line:no-any
-	public consume(payload: any): void {
-		this.projectId = payload.projectId;
-		this.pages = payload.pages;
-		this.pageId = payload.pageId;
-		this.elementId = payload.elementId;
-	}
 }
 
 function main(): void {
@@ -66,22 +56,17 @@ function main(): void {
 		const { type, id, payload } = message;
 
 		// TODO: Do type refinements on message here
+		console.log(message);
 
 		switch (type) {
 			case 'project-start':
-				store.consume(payload);
-				scheduleScript(store);
-				break;
-			case 'styleguide-change':
-				store.pages = payload;
+				store.projectId = payload.projectId;
+				store.page = payload.page;
+				store.elementId = payload.elementId;
 				scheduleScript(store);
 				break;
 			case 'page-change':
-				store.pageId = payload;
-				break;
-			case 'tree-change':
-				store.pages = payload;
-				scheduleScript(store);
+				store.page = payload;
 				break;
 			case 'element-change': {
 				store.elementId = payload;
@@ -156,16 +141,13 @@ interface InjectedPreviewApplicationProps {
 class PreviewApplication extends React.Component {
 	public render(): JSX.Element | null {
 		const props = this.props as InjectedPreviewApplicationProps;
-		const pages = props.store.pages;
-		const pageId = props.store.pageId;
-		const page = pages.find(p => p.id === pageId);
 		const tasks = props.store.tasks;
 
-		if (!page || tasks.length > 0) {
+		if (!props.store.page || tasks.length > 0) {
 			return null;
 		}
 
-		const component = page.root;
+		const component = props.store.page.root;
 
 		return (
 			<React.Fragment>
@@ -303,7 +285,7 @@ function getComponent(props: InputComponentProps): string | React.SFC<PassedComp
 	}
 
 	const Component = typeof component.default === 'function' ? component.default : component;
-	Component.displayName = camelCase(props.name);
+	Component.displayName = upperFirst(camelCase(props.name));
 
 	return Component;
 }
@@ -326,10 +308,7 @@ function deriveComponents(tree: TreeNode, init: Set<string> = new Set()): Set<st
 }
 
 function scheduleScript(store: PreviewStore): void {
-	const pages = store.pages || [];
-	const pageId = store.pageId;
-
-	const page = pages.find(p => p.id === pageId);
+	const page = store.page;
 
 	if (page) {
 		const componentRequests = [...deriveComponents(page.root)];

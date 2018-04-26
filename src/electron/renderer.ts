@@ -26,8 +26,6 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 
 			{
 				const project = store.getCurrentProject();
-				const pages = store.getCurrentPages();
-
 				const page = store.getCurrentPage();
 				const selectedElement = store.getSelectedElement();
 
@@ -36,7 +34,7 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 					payload: {
 						projectId: project ? project.getId() : undefined,
 						pageId: page ? page.getId() : undefined,
-						pages,
+						page: page ? page.toJsonObject() : undefined,
 						selectedElementId: selectedElement ? selectedElement.getId() : undefined
 					}
 				});
@@ -44,10 +42,13 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 
 			MobX.autorun(() => {
 				const page: Page | undefined = store.getCurrentPage();
-				ipcRenderer.send('message', {
-					type: 'page-change',
-					payload: page ? page.getId() : undefined
-				});
+
+				if (page) {
+					ipcRenderer.send('message', {
+						type: 'page-change',
+						payload: page.toJsonObject()
+					});
+				}
 			});
 
 			MobX.autorun(() => {

@@ -135,7 +135,10 @@ export class Page {
 	 * @return The JSON object to be persisted.
 	 */
 	public toJsonObject(): JsonObject {
-		return { root: this.root ? this.root.toJsonObject() : undefined };
+		return {
+			id: this.getId(),
+			root: this.root ? this.root.toJsonObject() : undefined
+		};
 	}
 
 	/**

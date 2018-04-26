@@ -76,8 +76,7 @@ async function createWindow(): Promise<void> {
 		}
 	});
 
-	// tslint:disable-next-line:no-any
-	server.on('client-message', (envelope: any) => {
+	server.on('client-message', (envelope: string) => {
 		try {
 			const message = JSON.parse(envelope);
 			switch (message.type) {

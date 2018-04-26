@@ -26,7 +26,7 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 	const app = express();
 
 	// tslint:disable-next-line:no-any
-	const server = Http.createServer(app as any);
+	const server = Http.createServer(app);
 	const wss = new WebsocketServer({ server });
 
 	let startMessage;

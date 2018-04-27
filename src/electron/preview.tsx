@@ -65,6 +65,10 @@ function main(): void {
 		// TODO: Do type refinements on message here
 		switch (type) {
 			case 'reload': {
+				window.location.reload();
+				break;
+			}
+			case 'update': {
 				Promise.all([refetch('renderer'), refetch('components')]).then(() => {
 					render();
 				});

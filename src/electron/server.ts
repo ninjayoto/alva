@@ -123,7 +123,7 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 			case 'styleguide-change': {
 				const { payload } = message;
 				if (compilation.path !== payload.styleguidePath) {
-					if (compilation.compiler) {
+					if (compilation.compiler && typeof compilation.compiler.close === 'function') {
 						compilation.compiler.close();
 					}
 
@@ -149,7 +149,7 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 					next.compiler.hooks.watchRun.tap('alva', () => {
 						send(
 							JSON.stringify({
-								type: 'reload',
+								type: 'update',
 								id: uuid.v4(),
 								payload: {}
 							})

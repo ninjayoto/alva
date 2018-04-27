@@ -37,7 +37,7 @@ export class PreviewPaneWrapper extends React.Component<PreviewPaneProps, Elemen
 	private handleMouseMove(e: React.MouseEvent<HTMLElement>): void {
 		const { maxWidth, mousePosition, width, direction } = this.state;
 
-		if (mousePosition === null) {
+		if (typeof mousePosition !== 'number' || Number.isNaN(mousePosition)) {
 			return;
 		}
 

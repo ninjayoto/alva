@@ -1,8 +1,7 @@
 import * as HtmlSketchApp from '@brainly/html-sketchapp';
+import { getComponent } from './get-component';
 import { HighlightArea } from './highlight-area';
-import { camelCase, upperFirst } from 'lodash';
 import * as MobX from 'mobx';
-import { safePattern } from './safe-pattern';
 import * as SmoothscrollPolyfill from 'smoothscroll-polyfill';
 
 // TODO: Produces a deprecation warning, find a way
@@ -135,31 +134,6 @@ function parse(data: string): any {
 	}
 }
 
-interface PassedComponentProps {
-	// tslint:disable-next-line:no-any
-	[propName: string]: any;
-}
-
-interface InputComponentProps extends PassedComponentProps {
-	name: string;
-	pattern: string;
-}
-
-// tslint:disable-next-line:no-any
-function getComponent(props: InputComponentProps): any {
-	// tslint:disable-next-line:no-any
-	const component = props.pattern ? (window as any).components[safePattern(props.pattern)] : null;
-
-	if (!component) {
-		return null;
-	}
-
-	const Component = typeof component.default === 'function' ? component.default : component;
-	Component.displayName = upperFirst(camelCase(props.name));
-
-	return Component;
-}
-
 function refetch(name: string): Promise<boolean> {
 	return new Promise((resolve, reject) => {
 		const candidate = document.querySelector(`script[data-script="${name}"]`);
@@ -170,8 +144,6 @@ function refetch(name: string): Promise<boolean> {
 
 		const componentScript = candidate as HTMLScriptElement;
 		const src = componentScript ? componentScript.getAttribute('src') : '';
-
-		console.log({ src, name });
 
 		if (!src) {
 			resolve(false);

@@ -1,3 +1,4 @@
+import { ComponentGetter } from './get-component';
 import { HighlightArea } from './highlight-area';
 import { omit } from 'lodash';
 import * as MobX from 'mobx';
@@ -11,10 +12,9 @@ import * as ReactDom from 'react-dom';
 MobX.extras.shareGlobalState();
 
 export interface RenderInit {
+	getComponent: ComponentGetter<React.Component | React.SFC>;
 	highlight: HighlightArea;
 	store: PreviewStore;
-	// tslint:disable-next-line:no-any
-	getComponent(props: any): any;
 }
 
 export interface InjectedPreviewHighlightProps {
@@ -125,9 +125,21 @@ export function render(init: RenderInit): void {
 			// tslint:disable-next-line:no-unused-expression
 			props.store.elementId;
 
-			const Component = init.getComponent(props);
+			// tslint:disable-next-line:no-any
+			const Component = init.getComponent(props, {
+				// tslint:disable-next-line:no-any
+				text: (p: any) => p.text,
+				// tslint:disable-next-line:no-any
+				asset: (p: any) => {
+					if (!p.asset || typeof p.asset !== 'string') {
+						return null;
+					}
+					return <img src={p.asset} style={{ width: '100%', height: 'auto' }} />;
+				}
+				// tslint:disable-next-line:no-any
+			}) as any;
 
-			if (!Component) {
+			if (Component === null) {
 				return null;
 			}
 

@@ -61,30 +61,28 @@ export class PdfExporter extends Exporter {
 					return;
 				}
 
-				setTimeout(() => {
-					webview.printToPDF(
-						{
-							marginsType: 1,
-							pageSize: 'A4',
-							printBackground: true,
-							printSelectionOnly: false,
-							landscape: false
-						},
-						(error: Error, data: Buffer) => {
-							if (error) {
-								resolve({ error });
-								return;
-							}
-
-							this.contents = data;
-							resolve({ result: this.contents });
-
-							setTimeout(() => {
-								document.body.removeChild(webview);
-							});
+				webview.printToPDF(
+					{
+						marginsType: 1,
+						pageSize: 'A4',
+						printBackground: true,
+						printSelectionOnly: false,
+						landscape: false
+					},
+					(error: Error, data: Buffer) => {
+						if (error) {
+							resolve({ error });
+							return;
 						}
-					);
-				}, 100);
+
+						this.contents = data;
+						resolve({ result: this.contents });
+
+						setTimeout(() => {
+							document.body.removeChild(webview);
+						});
+					}
+				);
 			};
 
 			webview.addEventListener('did-finish-load', () => {

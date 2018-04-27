@@ -72,27 +72,25 @@ export class PngExporter extends Exporter {
 					return;
 				}
 
-				setTimeout(() => {
-					webview.capturePage(
-						{
-							x: 0,
-							y: 0,
-							// round the numbers to remove possible floating numbers
-							// also multiply by scaleFactor for devices with higher pixel ratio:
-							// https://github.com/electron/electron/issues/8314
-							width: Math.round(config.width * scaleFactor),
-							height: Math.round(config.height * scaleFactor)
-						},
-						capture => {
-							const pngBuffer: Buffer = capture.toPNG();
-							resolve(pngBuffer);
+				webview.capturePage(
+					{
+						x: 0,
+						y: 0,
+						// round the numbers to remove possible floating numbers
+						// also multiply by scaleFactor for devices with higher pixel ratio:
+						// https://github.com/electron/electron/issues/8314
+						width: Math.round(config.width * scaleFactor),
+						height: Math.round(config.height * scaleFactor)
+					},
+					capture => {
+						const pngBuffer: Buffer = capture.toPNG();
+						resolve(pngBuffer);
 
-							setTimeout(() => {
-								document.body.removeChild(webview);
-							});
-						}
-					);
-				}, 100);
+						setTimeout(() => {
+							document.body.removeChild(webview);
+						});
+					}
+				);
 			};
 
 			webview.addEventListener('did-finish-load', () => {

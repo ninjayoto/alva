@@ -145,6 +145,7 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 					compilation.path = payload.styleguidePath;
 					compilation.compiler = next.compiler;
 					compilation.queue = next.queue;
+					compilation.listeners = [];
 
 					next.compiler.hooks.watchRun.tap('alva', () => {
 						send(

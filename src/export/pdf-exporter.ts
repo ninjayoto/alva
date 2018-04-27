@@ -56,7 +56,7 @@ export class PdfExporter extends Exporter {
 			};
 
 			// (3) Wait for webview to be ready and capture the page
-			const shoot = () => {
+			const createPdf = () => {
 				if (started !== id) {
 					return;
 				}
@@ -91,7 +91,7 @@ export class PdfExporter extends Exporter {
 				if (webview.src === initial) {
 					return;
 				}
-				shoot();
+				createPdf();
 			});
 
 			ipcRenderer.on('message', receive);

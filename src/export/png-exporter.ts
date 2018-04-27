@@ -67,7 +67,7 @@ export class PngExporter extends Exporter {
 			};
 
 			// (3) Wait for webview to be ready and capture the page
-			const shoot = () => {
+			const createPng = () => {
 				if (!config) {
 					return;
 				}
@@ -99,7 +99,7 @@ export class PngExporter extends Exporter {
 				if (webview.src === initial) {
 					return;
 				}
-				shoot();
+				createPng();
 			});
 
 			ipcRenderer.on('message', receive);

@@ -49,7 +49,7 @@ export class PngExporter extends Exporter {
 				const payload = message.payload;
 				const parsed = Url.parse(payload.location);
 
-				if (parsed.host !== `localhost:${store.getPort()}`) {
+				if (parsed.host !== `localhost:${store.getServerPort()}`) {
 					return;
 				}
 

@@ -21,7 +21,7 @@ ipcRenderer.on('message', (e: Electron.Event, message: any) => {
 	}
 	switch (message.type) {
 		case 'start-app': {
-			store.setPort(message.payload);
+			store.setServerPort(message.payload);
 		}
 	}
 });

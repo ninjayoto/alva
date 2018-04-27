@@ -155,7 +155,7 @@ export class App extends React.Component {
 						<PreviewPaneWrapper
 							key="center"
 							id="preview"
-							previewFrame={`http://localhost:${store.getPort()}/preview.html`}
+							previewFrame={`http://localhost:${store.getServerPort()}/preview.html`}
 						/>,
 						<SideBar key="right" directionVertical hasPaddings>
 							<PropertyPane>

@@ -40,7 +40,7 @@ export class PdfExporter extends Exporter {
 
 				const parsed = Url.parse(payload.location);
 
-				if (parsed.host !== `localhost:${store.getPort()}`) {
+				if (parsed.host !== `localhost:${store.getServerPort()}`) {
 					return;
 				}
 

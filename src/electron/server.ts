@@ -37,6 +37,7 @@ type Queue = any[];
 
 const PREVIEW_PATH = require.resolve('./preview');
 const LOADER_PATH = require.resolve('./loader');
+const RENDERER_PATH = require.resolve('./preview-renderer');
 
 export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 	const store = Store.getInstance();
@@ -245,11 +246,12 @@ async function setup(update: any): Promise<any> {
 		mode: 'development',
 		context,
 		entry: {
-			preview: PREVIEW_PATH,
 			components: `${LOADER_PATH}?${QueryString.stringify({
 				cwd: context,
 				components: JSON.stringify(components)
-			})}!`
+			})}!`,
+			renderer: RENDERER_PATH,
+			preview: PREVIEW_PATH
 		},
 		output: {
 			filename: '[name].js',

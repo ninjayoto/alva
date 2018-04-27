@@ -1,7 +1,6 @@
 import { App } from '../component/container/app';
 import { ipcRenderer, webFrame } from 'electron';
 import * as MobX from 'mobx';
-// import { Page } from '../store/page/page';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Store } from '../store/store';

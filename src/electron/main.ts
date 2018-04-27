@@ -3,9 +3,11 @@ import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import * as Fs from 'fs';
 import * as getPort from 'get-port';
 import * as stringEscape from 'js-string-escape';
+import * as Message from '../message';
 import * as Path from 'path';
 import { createServer } from './server';
 import * as Url from 'url';
+import * as uuid from 'uuid';
 
 const APP_ENTRY = require.resolve('./renderer');
 
@@ -51,7 +53,7 @@ async function createWindow(): Promise<void> {
 	const server = await createServer({ port });
 
 	// tslint:disable-next-line:no-any
-	const send = (message: any) => {
+	const send = (message: Message.Message) => {
 		if (win) {
 			win.webContents.send('message', message);
 		}
@@ -67,12 +69,11 @@ async function createWindow(): Promise<void> {
 
 		switch (payload.type) {
 			case 'app-loaded': {
-				if (win) {
-					win.webContents.send('message', {
-						type: 'start-app',
-						payload: port
-					});
-				}
+				send({
+					id: uuid.v4(),
+					type: Message.MessageType.StartApp,
+					payload: port
+				});
 			}
 		}
 	});
@@ -85,14 +86,14 @@ async function createWindow(): Promise<void> {
 					send({
 						id: message.id,
 						payload: message.payload,
-						type: message.type
+						type: Message.MessageType.ContentResponse
 					});
 					break;
 				case 'sketch-response':
 					send({
 						id: message.id,
 						payload: message.payload,
-						type: message.type
+						type: Message.MessageType.SketchResponse
 					});
 			}
 		} catch (err) {
@@ -166,17 +167,4 @@ ipcMain.on('request-check-for-updates', () => {
 	if (win) {
 		checkForUpdates(win, true);
 	}
-});
-
-ipcMain.on('preview-ready', () => {
-	BrowserWindow.getAllWindows().forEach(window => {
-		window.webContents.send('preview-ready');
-	});
-});
-
-// tslint:disable-next-line:no-any
-ipcMain.on('export-as-sketch-done', (_: Event, payload: any) => {
-	BrowserWindow.getAllWindows().forEach(window => {
-		window.webContents.send('export-as-sketch-done', payload);
-	});
 });

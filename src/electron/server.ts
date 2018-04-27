@@ -58,7 +58,8 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 	// tslint:disable-next-line:no-any
 	const compilation: any = {
 		path: '',
-		queue: []
+		queue: [],
+		listeners: []
 	};
 
 	// Prevent client errors (frequently caused by Chrome disconnecting on reload)
@@ -87,9 +88,11 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 
 		// tslint:disable-next-line:no-any
 		const onReady = (fs: any): void => {
+			compilation.listeners = compilation.listeners.filter(l => l !== onReady);
+
 			try {
 				res.type('js');
-				res.send(fs.readFileSync(req.url));
+				res.send(fs.readFileSync(req.path));
 			} catch (err) {
 				if (err.code === 'ENOENT') {
 					res.sendStatus(404);
@@ -100,19 +103,10 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 		};
 
 		if (current.type === 'start') {
-			compilation.compiler.hooks.done.tap('alva', stats => {
-				if (stats.hasErrors()) {
-					res.status(500).send(stats.toJson('errors-only'));
-					return;
-				}
-				onReady(compilation.compiler.outputFileSystem);
-				return;
-			});
-			return;
+			compilation.listeners.push(onReady);
+		} else {
+			onReady(compilation.compiler.outputFileSystem);
 		}
-
-		onReady(compilation.compiler.outputFileSystem);
-		return;
 	});
 
 	const send = (message: string): void => {
@@ -160,6 +154,10 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 								payload: {}
 							})
 						);
+					});
+
+					next.compiler.hooks.done.tap('alva', stats => {
+						compilation.listeners.forEach(l => l(compilation.compiler.outputFileSystem));
 					});
 				}
 				break;
@@ -256,7 +254,7 @@ async function setup(update: any): Promise<any> {
 		output: {
 			filename: '[name].js',
 			library: '[name]',
-			libraryTarget: 'global',
+			libraryTarget: 'window',
 			path: '/'
 		},
 		optimization: {
@@ -271,9 +269,9 @@ async function setup(update: any): Promise<any> {
 					}
 				}
 			}
-		}
-		// tslint:disable-next-line:no-any
-	} as any);
+		},
+		plugins: [new webpack.HotModuleReplacementPlugin()]
+	});
 
 	compiler.outputFileSystem = new MemoryFs();
 

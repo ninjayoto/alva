@@ -81,10 +81,10 @@ export const previewDocument = `<!doctype html>
 			<div class="circle_blue"></div>
 		</div>
 	</div>
-	<script src="/scripts/vendor.js"></script>
-	<script src="/scripts/renderer.js"></script>
-	<script src="/scripts/components.js"></script>
-	<script src="/scripts/preview.js"></script>
+	<script src="/scripts/vendor.js" data-script="vendor"></script>
+	<script src="/scripts/renderer.js" data-script="renderer"></script>
+	<script src="/scripts/components.js" data-script="components"></script>
+	<script src="/scripts/preview.js" data-script="preview"></script>
 </body>
 </html>
 `;

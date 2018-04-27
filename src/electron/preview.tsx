@@ -41,6 +41,15 @@ function main(): void {
 	const connection = new WebSocket(`ws://${window.location.host}`);
 	const close = () => connection.close();
 
+	const render = () => {
+		// tslint:disable-next-line:no-any
+		(window as any).renderer.render({
+			getComponent,
+			highlight,
+			store
+		});
+	};
+
 	connection.addEventListener('open', (...args) => {
 		window.addEventListener('beforeunload', close);
 	});
@@ -55,9 +64,12 @@ function main(): void {
 
 		// TODO: Do type refinements on message here
 		switch (type) {
-			case 'reload':
-				window.location.reload();
+			case 'reload': {
+				Promise.all([refetch('renderer'), refetch('components')]).then(() => {
+					render();
+				});
 				break;
+			}
 			case 'state':
 				store.page = payload.page;
 				break;
@@ -107,12 +119,7 @@ function main(): void {
 		}
 	});
 
-	// tslint:disable-next-line:no-any
-	(window as any).renderer.render({
-		getComponent,
-		highlight,
-		store
-	});
+	render();
 }
 
 // tslint:disable-next-line:no-any
@@ -147,6 +154,38 @@ function getComponent(props: InputComponentProps): any {
 	Component.displayName = upperFirst(camelCase(props.name));
 
 	return Component;
+}
+
+function refetch(name: string): Promise<boolean> {
+	return new Promise((resolve, reject) => {
+		const candidate = document.querySelector(`script[data-script="${name}"]`);
+
+		if (!candidate) {
+			resolve(false);
+		}
+
+		const componentScript = candidate as HTMLScriptElement;
+		const src = componentScript ? componentScript.getAttribute('src') : '';
+
+		console.log({ src, name });
+
+		if (!src) {
+			resolve(false);
+		}
+
+		const script = document.createElement('script');
+		script.src = `${src}?reload=${Date.now()}`;
+		script.dataset.script = name;
+
+		script.onload = () => {
+			if (componentScript && document.body.contains(componentScript)) {
+				document.body.removeChild(componentScript);
+			}
+			resolve(true);
+		};
+
+		document.body.appendChild(script);
+	});
 }
 
 main();

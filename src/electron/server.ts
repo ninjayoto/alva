@@ -184,6 +184,10 @@ export async function createServer(opts: ServerOptions): Promise<EventEmitter> {
 				break;
 			case 'app-loaded':
 				break;
+			case 'sketch-request':
+			case 'content-request':
+				send(JSON.stringify(message));
+				break;
 			default: {
 				console.warn(`Unknown message type: ${message.type}`);
 			}

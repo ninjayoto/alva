@@ -22,7 +22,7 @@ const StyledPreviewWrapper = styled.div`
 `;
 
 const StyledPreviewResizer = styled.div`
-	width: 12px;
+	width: 9px;
 	height: 100%;
 	cursor: ew-resize;
 	&::after {
@@ -31,10 +31,21 @@ const StyledPreviewResizer = styled.div`
 		top: 50%;
 		transform: translateY(-50%);
 		height: 36px;
-		width: 6px;
+		width: 3px;
 		margin: 3px;
-		border-radius: 5px;
-		background: grey;
+		border-radius: 2px;
+		background: ${colors.grey80.toString()};
+	}
+
+	&:hover {
+		&::after {
+			background: ${colors.grey60.toString()};
+		}
+	}
+	&:active {
+		&::after {
+			background: ${colors.blue40.toString()};
+		}
 	}
 `;
 
@@ -42,8 +53,6 @@ const BaseStyledPreviewPane = styled.div`
 	flex-grow: 1;
 	overflow: hidden;
 	background: ${colors.white.toString()};
-	border-radius: 6px 6px 0 0;
-	box-shadow: 0 3px 9px 0 ${colors.black.toRGBString(0.15)};
 `;
 
 const StyledPreviewPane = BaseStyledPreviewPane.extend.attrs({

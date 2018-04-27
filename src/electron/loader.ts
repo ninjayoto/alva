@@ -1,22 +1,27 @@
-const loaderUtils = require('loader-utils');
+import { getOptions } from 'loader-utils';
+import { loader } from 'webpack';
+
+// No typings available for commondir
 const commondir = require('commondir');
 
-// tslint:disable-next-line
-module.exports = function loader() {
-	// tslint:disable-next-line
-	const options = loaderUtils.getOptions(this);
-	const components = JSON.parse(options.components);
+module.exports = alvaEntryLoader;
 
-	// tslint:disable-next-line
+interface StringMap {
+	[name: string]: string;
+}
+
+export function alvaEntryLoader(this: loader.LoaderContext): string {
+	const options = getOptions(this);
+	const components: StringMap = JSON.parse(options.components);
 	const common = commondir(options.cwd, Object.values(components));
 
-	// tslint:disable-next-line
-	(this as any).addContextDependency(common);
+	this.addContextDependency(common);
 
 	return Object.entries(components)
-		.map(
-			([name, value]) =>
-				`module.exports[${JSON.stringify(name)}] = require(${JSON.stringify(value)})`
-		)
+		.map(([name, id]) => createExport(name, id))
 		.join('\n');
-};
+}
+
+function createExport(name: string, id: string): string {
+	return `module.exports[${JSON.stringify(name)}] = require(${JSON.stringify(id)})`;
+}

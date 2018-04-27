@@ -190,7 +190,7 @@ class PreviewComponent extends React.Component<PreviewComponentProps> {
 
 	public render(): JSX.Element | null {
 		const props = this.props as InjectedPreviewComponentProps;
-		const contents = props.contents ? props.contents : {};
+		const contents = props.contents || {};
 		const children = typeof contents.default === 'undefined' ? [] : contents.default;
 		const slots = omit(contents, ['default']);
 

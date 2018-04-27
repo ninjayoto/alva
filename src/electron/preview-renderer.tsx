@@ -42,6 +42,14 @@ export interface PreviewComponentProps {
 	uuid: string;
 }
 
+interface ErrorBoundaryProps {
+	name: string;
+}
+
+interface ErrorBoundaryState {
+	errorMessage?: string;
+}
+
 export function render(init: RenderInit): void {
 	@MobXReact.inject('store', 'highlight')
 	@MobXReact.observer
@@ -68,6 +76,25 @@ export function render(init: RenderInit): void {
 					<PreviewHighlight />
 				</React.Fragment>
 			);
+		}
+	}
+
+	class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+		public state = {
+			errorMessage: ''
+		};
+
+		public componentDidCatch(error: Error): void {
+			this.setState({
+				errorMessage: error.message
+			});
+		}
+
+		public render(): JSX.Element {
+			if (this.state.errorMessage) {
+				return <ErrorMessage patternName={this.props.name} error={this.state.errorMessage} />;
+			}
+			return this.props.children as JSX.Element;
 		}
 	}
 
@@ -105,9 +132,11 @@ export function render(init: RenderInit): void {
 			}
 
 			return (
-				<Component {...slots} {...props.properties} data-sketch-name={props.name}>
-					{children.map(child => <PreviewComponent key={child.uuid} {...child} />)}
-				</Component>
+				<ErrorBoundary name={props.name}>
+					<Component {...slots} {...props.properties} data-sketch-name={props.name}>
+						{children.map(child => <PreviewComponent key={child.uuid} {...child} />)}
+					</Component>
+				</ErrorBoundary>
 			);
 		}
 	}
@@ -154,3 +183,31 @@ export function render(init: RenderInit): void {
 		document.getElementById('preview')
 	);
 }
+
+interface ErrorMessageProps {
+	error: string;
+	patternName: string;
+}
+
+const ErrorMessage: React.StatelessComponent<ErrorMessageProps> = props => (
+	<div
+		style={{
+			backgroundColor: 'rgb(240, 40, 110)',
+			color: 'white',
+			padding: '12px 15px',
+			textAlign: 'center'
+		}}
+	>
+		<p
+			style={{
+				margin: '0',
+				fontFamily:
+					'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"',
+				fontSize: '15px',
+				lineHeight: '22px'
+			}}
+		>
+			{`<${props.patternName}/> failed to render: ${props.error}`}
+		</p>
+	</div>
+);

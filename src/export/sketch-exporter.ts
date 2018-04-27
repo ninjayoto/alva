@@ -4,46 +4,7 @@ import { Page } from '../store/page/page';
 import { Store } from '../store/store';
 import * as uuid from 'uuid';
 
-// type Message = SuccessMessage | ErrorMessage;
-
-/* interface SuccessMessage {
-	contents: string;
-	id: string;
-}
-
-interface ErrorMessage {
-	error: Error;
-	id: string;
-} */
-
 export class SketchExporter extends Exporter {
-	// private id: string;
-
-	public constructor() {
-		super();
-		// this.id = uuid.v4();
-	}
-
-	/* public static createSketchExport(): string {
-		const element = document.querySelector('#preview > div > div:nth-child(1)') as HTMLElement;
-
-		const page = Store.getInstance().getCurrentPage() as Page;
-		const pageName = page.getName();
-		const projectName = page.getName();
-
-		const sketchPage = HtmlSketchApp.nodeTreeToSketchPage(element, {
-			pageName: projectName,
-			addArtboard: true,
-			artboardName: pageName,
-			getGroupName: node =>
-				node.getAttribute('data-sketch-name') || `(${node.nodeName.toLowerCase()})`,
-			getRectangleName: () => 'background',
-			skipSystemFonts: true
-		});
-
-		return JSON.stringify(sketchPage.toJSON(), null, '\t');
-	} */
-
 	public async createExport(): Promise<ExportResult> {
 		return new Promise<ExportResult>((resolve, reject) => {
 			const id = uuid.v4();
